@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "mobile_apps",
+    "slug": "mobile_apps",
+    "version": "1.0.0",
+    "scheme": "mobileapps",
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      [
+        "expo-dev-launcher",
+        {
+          "launchMode": "most-recent"
+        }
+      ],
+      "expo-web-browser",
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsDownloadToken": "sk.eyJ1IjoiYW50aG9ueTA1IiwiYSI6ImNtZWQwczExNjA1dDcya3MzazZmdXp1Z28ifQ.g1ljGkRysTjexwbCdR6Kug"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    },
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anthony05.mobile-apps"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.anthony05.mobile_apps"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "fe80008f-d510-4067-939a-a104b0fdeb68"
+      }
+    }
+  }
+}
