@@ -81,14 +81,13 @@ const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
           </Text>
 
           {/* Location */}
-          <View className="mb-2 flex-row items-center">
-            <Image
-              source={require('../../assets/icons/search-location.png')}
-              className="mr-2 h-4 w-4 opacity-60"
-              resizeMode="contain"
-            />
-            <Text className="flex-1 text-sm text-gray-600">
-              {spot.address || spot.description || 'Parking location'}
+          <View className="mb-2 flex-row">
+            <Text
+              className="flex-1 text-sm leading-5 text-gray-600"
+              numberOfLines={2}
+              ellipsizeMode="tail">
+              {spot.address ||
+                'Parking location available near your destination with convenient access and security features'}
             </Text>
           </View>
 
@@ -109,25 +108,16 @@ const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
           </View>
 
           {/* Availability Status */}
-          <View className={`rounded-lg border px-3 py-2 ${getAvailabilityBg()}`}>
-            <View className="flex-row items-center justify-between">
-              <View className="flex-row items-center">
-                <Image
-                  source={require('../../assets/icons/car.png')}
-                  className="mr-2 h-4 w-4 opacity-80"
-                  resizeMode="contain"
-                />
-                <Text className={`font-medium ${getAvailabilityColor()}`}>
-                  {spot.available} spaces available
-                </Text>
-              </View>
-
-              {/* Security/Features Badge */}
-              {spot.features?.includes('security') && (
-                <View className="rounded-full bg-blue-100 px-2 py-1">
-                  <Text className="text-xs font-medium text-blue-600">🔒 Secure</Text>
-                </View>
-              )}
+          <View className={`rounded-lg border ${getAvailabilityBg()}`}>
+            <View className="flex-row items-center justify-center py-2">
+              <Image
+                source={require('../../assets/icons/car.png')}
+                className="mr-2 h-4 w-4 opacity-80"
+                resizeMode="contain"
+              />
+              <Text className={`font-medium ${getAvailabilityColor()}`}>
+                {spot.available} spaces available
+              </Text>
             </View>
           </View>
         </View>
@@ -193,15 +183,15 @@ const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
       {isSelected && (
         <View className="mt-3 border-t border-gray-200 pt-3">
           <View className="flex-row items-center justify-between">
-            <View className="flex-row space-x-4">
+            <View className="mr-4 flex-1 flex-row justify-between">
               {/* Operating Hours */}
-              <View>
+              <View className="flex-1">
                 <Text className="text-xs text-gray-500">Hours</Text>
                 <Text className="text-sm font-medium text-gray-900">{spot.hours || '24/7'}</Text>
               </View>
 
               {/* Payment Methods */}
-              <View>
+              <View className="flex-1">
                 <Text className="text-xs text-gray-500">Payment</Text>
                 <Text className="text-sm font-medium text-gray-900">
                   {spot.paymentMethods?.join(', ') || 'Cash, Card'}

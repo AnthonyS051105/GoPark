@@ -134,7 +134,7 @@ export default function Map({ selectedSpotIndex = 0, onSpotPress }: MapProps = {
       onDidFailLoadingMap={handleMapError}
       logoEnabled={false}
       attributionEnabled={false}
-      compassEnabled={true}
+      compassEnabled={false}
       scaleBarEnabled={false}>
       <Camera zoomLevel={14} centerCoordinate={location} animationDuration={1000} />
 

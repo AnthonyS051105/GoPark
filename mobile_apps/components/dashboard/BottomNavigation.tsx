@@ -36,33 +36,52 @@ const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabPre
   ];
 
   return (
-    <View className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white shadow-lg">
-      <View className="pb-safe flex-row items-center justify-around py-2">
-        {tabs.map((tab) => (
+    <View
+      className="absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white shadow-lg"
+      style={{
+        zIndex: 30,
+        borderTopLeftRadius: 30,
+        borderTopRightRadius: 30,
+      }}>
+      <View className="pb-safe flex-row items-center justify-center px-4 py-2">
+        {tabs.map((tab, index) => (
           <TouchableOpacity
             key={tab.id}
             onPress={() => onTabPress(tab.id)}
-            className="flex-1 items-center py-2"
+            className={`items-center py-1 ${index < tabs.length - 1 ? 'mr-4' : ''}`}
+            style={{ minWidth: 60 }}
             activeOpacity={0.7}>
             <View
-              className={`mb-1 h-10 w-10 items-center justify-center rounded-2xl ${
-                activeTab === tab.id ? 'bg-blue-600' : 'bg-transparent'
-              }`}>
+              style={{
+                width: activeTab === tab.id ? 68 : 50,
+                height: activeTab === tab.id ? 68 : 50,
+                backgroundColor: activeTab === tab.id ? '#2F6E77' : 'transparent',
+                borderRadius: activeTab === tab.id ? 34 : 25,
+                justifyContent: 'center',
+                alignItems: 'center',
+                marginTop: activeTab === tab.id ? -8 : 0,
+                shadowColor: activeTab === tab.id ? '#2F6E77' : 'transparent',
+                shadowOffset: {
+                  width: 0,
+                  height: 4,
+                },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: activeTab === tab.id ? 8 : 0,
+              }}>
               <Image
                 source={tab.icon}
-                className="h-6 w-6"
                 style={{
-                  tintColor: activeTab === tab.id ? '#ffffff' : '#6B7280',
+                  tintColor: activeTab === tab.id ? '#ffffff' : '#000000',
+                  width: activeTab === tab.id ? 34 : 26,
+                  height: activeTab === tab.id ? 34 : 26,
                 }}
                 resizeMode="contain"
               />
             </View>
-            <Text
-              className={`text-xs font-medium ${
-                activeTab === tab.id ? 'text-blue-600' : 'text-gray-500'
-              }`}>
-              {tab.label}
-            </Text>
+            {activeTab !== tab.id && (
+              <Text className="mt-1 text-xs font-medium text-gray-500">{tab.label}</Text>
+            )}
           </TouchableOpacity>
         ))}
       </View>
