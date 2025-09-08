@@ -9,7 +9,7 @@ import DraggablePullUpPanel from '../components/dashboard/DraggablePullUpPanel';
 import { parkingSpots, filterSpotsBySearch, sortSpotsByDistance } from '../data/parkingData';
 
 export default function DashboardPage() {
-  const [searchText, setSearchText] = useState('');
+  const [searchText] = useState('');
   const [activeTab, setActiveTab] = useState('parking');
   const [selectedSpotIndex, setSelectedSpotIndex] = useState(0);
   const [filteredSpots, setFilteredSpots] = useState(parkingSpots);
@@ -23,12 +23,6 @@ export default function DashboardPage() {
     spots = sortSpotsByDistance(spots);
     setFilteredSpots(spots);
     setSelectedSpotIndex(0); // Reset selection when spots change
-  }, [searchText]);
-
-  // Handle search functionality
-  const handleSearch = useCallback(() => {
-    // Search is already handled by useEffect when searchText changes
-    console.log('Searching for:', searchText);
   }, [searchText]);
 
   // Handle spot selection from panel
@@ -116,12 +110,7 @@ export default function DashboardPage() {
         <Map selectedSpotIndex={selectedSpotIndex} onSpotPress={handleSpotSelect} />
 
         {/* Search Bar Overlay */}
-        <SearchBar
-          value={searchText}
-          onChangeText={setSearchText}
-          onSearch={handleSearch}
-          placeholder="Search here"
-        />
+        <SearchBar placeholder="Search here" />
 
         {/* Location Button */}
         <LocationButton onPress={handleLocationPress} panelHeight={panelHeight} />
