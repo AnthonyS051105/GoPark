@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, StatusBar } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import Map from '../components/maps/Map';
 import SearchBar from '../components/dashboard/SearchBar';
 import BottomNavigation from '../components/dashboard/BottomNavigation';
@@ -9,6 +9,7 @@ import DraggablePullUpPanel from '../components/dashboard/DraggablePullUpPanel';
 import { parkingSpots, filterSpotsBySearch, sortSpotsByDistance } from '../data/parkingData';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [searchText] = useState('');
   const [activeTab, setActiveTab] = useState('parking');
   const [selectedSpotIndex, setSelectedSpotIndex] = useState(0);
@@ -61,37 +62,40 @@ export default function DashboardPage() {
   }, []);
 
   // Handle tab press
-  const handleTabPress = useCallback((tabId: string) => {
-    setActiveTab(tabId);
+  const handleTabPress = useCallback(
+    (tabId: string) => {
+      setActiveTab(tabId);
 
-    // Handle different tab actions
-    switch (tabId) {
-      case 'home':
-        // Could navigate to home or show main map view
-        console.log('Home tab pressed');
-        break;
-      case 'favorite':
-        // Could show favorite parking spots
-        console.log('Favorite tab pressed');
-        break;
-      case 'parking':
-        // Reset navigation state when going back to parking
-        setIsNavigating(false);
-        setNavigationState('idle');
-        console.log('Parking tab pressed');
-        break;
-      case 'history':
-        // Could show parking history
-        console.log('History tab pressed');
-        break;
-      case 'profile':
-        // Could show user profile
-        console.log('Profile tab pressed');
-        break;
-      default:
-        break;
-    }
-  }, []);
+      // Handle different tab actions
+      switch (tabId) {
+        case 'home':
+          // Stay on dashboard/home
+          console.log('Home tab pressed');
+          break;
+        case 'favorite':
+          // Navigate to favorite page
+          router.push('/favorite');
+          break;
+        case 'parking':
+          // Reset navigation state when going back to parking
+          setIsNavigating(false);
+          setNavigationState('idle');
+          console.log('Parking tab pressed');
+          break;
+        case 'history':
+          // Navigate to history page
+          router.push('/history');
+          break;
+        case 'profile':
+          // Navigate to profile page
+          router.push('/profile');
+          break;
+        default:
+          break;
+      }
+    },
+    [router]
+  );
 
   return (
     <View style={{ flex: 1 }}>
