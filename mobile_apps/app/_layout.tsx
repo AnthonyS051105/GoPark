@@ -27,6 +27,9 @@ export default function RootLayout() {
           <Stack.Screen name="index" />
           <Stack.Screen name="auth" />
           <Stack.Screen name="dashboard" />
+          <Stack.Screen name="profile" />
+          <Stack.Screen name="history" />
+          <Stack.Screen name="favorite" />
         </Stack>
       </AuthProvider>
     </GestureHandlerRootView>

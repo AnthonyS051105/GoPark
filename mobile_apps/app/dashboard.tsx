@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { View, StatusBar } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import Map from '../components/maps/Map';
 import SearchBar from '../components/dashboard/SearchBar';
 import BottomNavigation from '../components/dashboard/BottomNavigation';
@@ -9,12 +9,14 @@ import DraggablePullUpPanel from '../components/dashboard/DraggablePullUpPanel';
 import { parkingSpots, filterSpotsBySearch, sortSpotsByDistance } from '../data/parkingData';
 
 export default function DashboardPage() {
-  const [searchText, setSearchText] = useState('');
+  const router = useRouter();
+  const [searchText] = useState('');
   const [activeTab, setActiveTab] = useState('parking');
   const [selectedSpotIndex, setSelectedSpotIndex] = useState(0);
   const [filteredSpots, setFilteredSpots] = useState(parkingSpots);
   const [isNavigating, setIsNavigating] = useState(false);
   const [navigationState, setNavigationState] = useState('idle');
+  const [panelHeight, setPanelHeight] = useState(200); // Default collapsed height (120 + 80 bottom nav)
 
   // Filter and sort spots when search text changes
   useEffect(() => {
@@ -22,12 +24,6 @@ export default function DashboardPage() {
     spots = sortSpotsByDistance(spots);
     setFilteredSpots(spots);
     setSelectedSpotIndex(0); // Reset selection when spots change
-  }, [searchText]);
-
-  // Handle search functionality
-  const handleSearch = useCallback(() => {
-    // Search is already handled by useEffect when searchText changes
-    console.log('Searching for:', searchText);
   }, [searchText]);
 
   // Handle spot selection from panel
@@ -54,6 +50,11 @@ export default function DashboardPage() {
     console.log('Starting navigation to:', spot.name);
   }, []);
 
+  // Handle panel height change
+  const handlePanelHeightChange = useCallback((height: number) => {
+    setPanelHeight(height);
+  }, []);
+
   // Handle location button press
   const handleLocationPress = useCallback(() => {
     // This would center map on user location
@@ -61,13 +62,40 @@ export default function DashboardPage() {
   }, []);
 
   // Handle tab press
-  const handleTabPress = useCallback((tabId: string) => {
-    setActiveTab(tabId);
-    if (tabId === 'parking') {
-      setIsNavigating(false);
-      setNavigationState('idle');
-    }
-  }, []);
+  const handleTabPress = useCallback(
+    (tabId: string) => {
+      setActiveTab(tabId);
+
+      // Handle different tab actions
+      switch (tabId) {
+        case 'home':
+          // Stay on dashboard/home
+          console.log('Home tab pressed');
+          break;
+        case 'favorite':
+          // Navigate to favorite page
+          router.push('/favorite');
+          break;
+        case 'parking':
+          // Reset navigation state when going back to parking
+          setIsNavigating(false);
+          setNavigationState('idle');
+          console.log('Parking tab pressed');
+          break;
+        case 'history':
+          // Navigate to history page
+          router.push('/history');
+          break;
+        case 'profile':
+          // Navigate to profile page
+          router.push('/profile');
+          break;
+        default:
+          break;
+      }
+    },
+    [router]
+  );
 
   return (
     <View style={{ flex: 1 }}>
@@ -86,15 +114,10 @@ export default function DashboardPage() {
         <Map selectedSpotIndex={selectedSpotIndex} onSpotPress={handleSpotSelect} />
 
         {/* Search Bar Overlay */}
-        <SearchBar
-          value={searchText}
-          onChangeText={setSearchText}
-          onSearch={handleSearch}
-          placeholder="Search here"
-        />
+        <SearchBar placeholder="Search here" />
 
         {/* Location Button */}
-        <LocationButton onPress={handleLocationPress} />
+        <LocationButton onPress={handleLocationPress} panelHeight={panelHeight} />
 
         {/* Draggable Pull-up Panel */}
         <DraggablePullUpPanel
@@ -105,6 +128,7 @@ export default function DashboardPage() {
           onStartNavigation={handleStartNavigation}
           isNavigating={isNavigating}
           navigationState={navigationState}
+          onPanelHeightChange={handlePanelHeightChange}
         />
 
         {/* Bottom Navigation */}

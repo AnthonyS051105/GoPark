@@ -3,7 +3,8 @@ export const parkingSpots = [
   {
     id: 1,
     name: 'CCM Basement',
-    address: 'Jl. Raya Grafika, Senolowo, Sinduadi, Mlati, Sleman',
+    address:
+      'Jl. Raya Grafika, Senolowo, Sinduadi, Mlati, Sleman - Secure basement parking with 24/7 access and CCTV monitoring',
     rating: 4.5,
     hourlyRate: 5000,
     available: 12,
@@ -18,7 +19,8 @@ export const parkingSpots = [
   {
     id: 2,
     name: 'Mall Galeria',
-    address: 'Jl. Sudirman, Kotabaru, Gondokusuman, Yogyakarta',
+    address:
+      'Jl. Sudirman, Kotabaru, Gondokusuman, Yogyakarta - Premium mall parking with valet service and covered protection',
     rating: 4.8,
     hourlyRate: 8000,
     available: 25,
@@ -33,7 +35,8 @@ export const parkingSpots = [
   {
     id: 3,
     name: 'Jogja City Mall',
-    address: 'Jl. Magelang, Kuningan, Sleman, Yogyakarta',
+    address:
+      'Jl. Magelang, Kuningan, Sleman, Yogyakarta - Modern parking facility with lift access and wheelchair accessibility',
     rating: 4.3,
     hourlyRate: 6000,
     available: 18,
@@ -48,7 +51,8 @@ export const parkingSpots = [
   {
     id: 4,
     name: 'Hartono Mall',
-    address: 'Jl. Ring Road Utara, Condongcatur, Sleman, Yogyakarta',
+    address:
+      'Jl. Ring Road Utara, Condongcatur, Sleman, Yogyakarta - Spacious premium parking with food court access and security',
     rating: 4.6,
     hourlyRate: 7000,
     available: 35,
@@ -63,7 +67,8 @@ export const parkingSpots = [
   {
     id: 5,
     name: 'UGM Parking Area',
-    address: 'Bulaksumur, Caturtunggal, Sleman, Yogyakarta',
+    address:
+      'Bulaksumur, Caturtunggal, Sleman, Yogyakarta - University campus parking with student discount and campus access',
     rating: 4.1,
     hourlyRate: 3000,
     available: 45,

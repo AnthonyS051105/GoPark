@@ -34,12 +34,18 @@ interface DraggablePullUpPanelProps {
   onStartNavigation?: (index: number, spot: ParkingSpot) => void;
   isNavigating?: boolean;
   navigationState?: string;
+  onPanelHeightChange?: (height: number) => void;
 }
 
 const { height: screenHeight } = Dimensions.get('window');
+const BOTTOM_NAV_HEIGHT = 80; // Height of bottom navigation
 const PANEL_HEIGHT = screenHeight * 0.6; // 60% of screen height
-const COLLAPSED_HEIGHT = 120; // Height when collapsed
-const SNAP_POINTS = [COLLAPSED_HEIGHT, PANEL_HEIGHT * 0.5, PANEL_HEIGHT]; // Collapsed, Half, Full
+const COLLAPSED_HEIGHT = 120; // Height when collapsed (tanpa menambah BOTTOM_NAV_HEIGHT)
+const SNAP_POINTS = [
+  COLLAPSED_HEIGHT + BOTTOM_NAV_HEIGHT, // Panel + bottom nav
+  PANEL_HEIGHT * 0.5 + BOTTOM_NAV_HEIGHT, // Half + bottom nav
+  PANEL_HEIGHT + BOTTOM_NAV_HEIGHT, // Full + bottom nav
+]; // Collapsed, Half, Full
 
 type FilterType =
   | 'distance'
@@ -75,12 +81,13 @@ export default function DraggablePullUpPanel({
   onStartNavigation,
   isNavigating = false,
   navigationState = 'idle',
+  onPanelHeightChange,
 }: DraggablePullUpPanelProps) {
   const [currentSnapPoint, setCurrentSnapPoint] = useState(0);
   const [activeFilter, setActiveFilter] = useState<FilterType>(null);
   const scrollViewRef = useRef<ScrollView>(null);
-  const panelPosition = useSharedValue(COLLAPSED_HEIGHT);
-  const lastPanelHeight = useRef(COLLAPSED_HEIGHT);
+  const panelPosition = useSharedValue(SNAP_POINTS[0]); // Gunakan snap point pertama
+  const lastPanelHeight = useRef(SNAP_POINTS[0]); // Gunakan snap point pertama
 
   // Sort spots based on active filter
   const sortedSpots = useMemo(() => {
@@ -179,6 +186,16 @@ export default function DraggablePullUpPanel({
     };
   });
 
+  // Notify parent about panel height changes with real-time updates
+  React.useEffect(() => {
+    if (onPanelHeightChange) {
+      // Send the actual panel height (excluding bottom nav)
+      const actualPanelHeight = SNAP_POINTS[currentSnapPoint] - BOTTOM_NAV_HEIGHT;
+      console.log('Panel height changed:', actualPanelHeight, 'Snap point:', currentSnapPoint);
+      onPanelHeightChange(actualPanelHeight);
+    }
+  }, [currentSnapPoint, onPanelHeightChange]);
+
   // Snap to nearest snap point
   const snapToPoint = useCallback(
     (targetHeight: number) => {
@@ -209,15 +226,15 @@ export default function DraggablePullUpPanel({
     [panelPosition]
   );
 
-  // Pan gesture handler
+  // Pan gesture handler with better responsiveness
   const panGesture = Gesture.Pan()
     .onStart(() => {
       lastPanelHeight.current = panelPosition.value;
     })
     .onUpdate((event) => {
       const newHeight = Math.max(
-        COLLAPSED_HEIGHT,
-        Math.min(PANEL_HEIGHT, lastPanelHeight.current - event.translationY)
+        SNAP_POINTS[0], // Gunakan snap point minimum
+        Math.min(PANEL_HEIGHT + BOTTOM_NAV_HEIGHT, lastPanelHeight.current - event.translationY)
       );
       panelPosition.value = newHeight;
     })
@@ -225,8 +242,8 @@ export default function DraggablePullUpPanel({
       const velocityY = event.velocityY;
       const currentHeight = panelPosition.value;
 
-      // If moving fast, snap to next point in direction of movement
-      if (Math.abs(velocityY) > 500) {
+      // Reduced velocity threshold for better responsiveness
+      if (Math.abs(velocityY) > 300) {
         if (velocityY < 0) {
           // Moving up (expanding)
           const nextPoint = Math.min(currentSnapPoint + 1, SNAP_POINTS.length - 1);
@@ -265,24 +282,6 @@ export default function DraggablePullUpPanel({
     [onSpotSelect, onScroll, spots]
   );
 
-  // Handle scroll events to sync with map
-  const handleScroll = useCallback(
-    (event: any) => {
-      if (!onScroll || sortedSpots.length === 0) return;
-
-      const cardHeight = 100; // Approximate height of each card
-      const scrollY = event.nativeEvent.contentOffset.y;
-      const index = Math.round(scrollY / cardHeight);
-      const clampedIndex = Math.max(0, Math.min(index, sortedSpots.length - 1));
-
-      // Only trigger if index actually changed
-      if (clampedIndex !== selectedIndex) {
-        onScroll(clampedIndex);
-      }
-    },
-    [onScroll, sortedSpots.length, selectedIndex]
-  );
-
   // Render panel header
   const renderHeader = () => (
     <View
@@ -291,85 +290,93 @@ export default function DraggablePullUpPanel({
         borderTopLeftRadius: 30, // Increased from 40 for more curve
         borderTopRightRadius: 30, // Increased from 40 for more curve
       }}>
-      {/* Drag Handle */}
-      <View className="items-center py-4">
-        <View
-          className="bg-gray-300"
-          style={{
-            height: 4,
-            width: 57,
-            borderRadius: 20,
-          }}
-        />
-      </View>
-
-      {/* Panel Title */}
-      <View className="px-6 pb-4">
-        <View className="flex-row items-center justify-between">
-          <View>
-            <Text className="text-xl font-bold text-white">Parking Spots</Text>
-            <Text className="text-sm text-white">
-              {sortedSpots.length} locations found
-              {activeFilter && (
-                <Text className="text-xs text-gray-200">
-                  {' '}
-                  • Sorted by{' '}
-                  {FILTER_OPTIONS.find((f) => f.key === activeFilter)?.label || activeFilter}
-                </Text>
-              )}
-            </Text>
+      {/* Drag Handle and Title Area - Both draggable */}
+      <GestureDetector gesture={panGesture}>
+        <View>
+          {/* Drag Handle */}
+          <View className="items-center py-4">
+            <View
+              className="bg-gray-300"
+              style={{
+                height: 4,
+                width: 57,
+                borderRadius: 20,
+              }}
+            />
           </View>
 
-          {/* Navigation Status */}
-          {isNavigating && (
-            <View className="rounded-full bg-blue-100 px-3 py-1">
-              <Text className="text-sm font-medium text-blue-600">
-                {navigationState === 'calculating' ? 'Calculating...' : 'Navigating'}
-              </Text>
-            </View>
-          )}
-        </View>
+          {/* Panel Title */}
+          <View className="px-6 pb-4">
+            <View className="flex-row items-center justify-between">
+              <View>
+                <Text className="text-2xl font-bold text-white">Parking Spots</Text>
+                <Text className="text-sm text-white">
+                  {sortedSpots.length} locations found
+                  {activeFilter && (
+                    <Text className="text-xs text-gray-200">
+                      {' '}
+                      • Sorted by{' '}
+                      {FILTER_OPTIONS.find((f) => f.key === activeFilter)?.label || activeFilter}
+                    </Text>
+                  )}
+                </Text>
+              </View>
 
-        {/* Filter/Sort Options */}
-        <View className="mt-3">
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{
-              paddingHorizontal: 16,
-              alignItems: 'center',
-            }}
-            style={{ flexGrow: 0 }}>
-            {FILTER_OPTIONS.map((option) => (
-              <TouchableOpacity
-                key={option.key}
-                className={`mr-2 rounded-full px-3 py-2 ${
-                  activeFilter === option.key ? 'bg-white shadow-sm' : 'bg-gray-100'
-                }`}
-                onPress={() => handleFilterPress(option.key)}
-                activeOpacity={0.7}>
-                <View className="flex-row items-center">
-                  <Text className="mr-1 text-xs">{option.icon}</Text>
-                  <Text
-                    className={`text-xs ${
-                      activeFilter === option.key ? 'font-semibold text-[#2F6E77]' : 'text-gray-600'
-                    }`}>
-                    {option.label}
+              {/* Navigation Status */}
+              {isNavigating && (
+                <View className="rounded-full bg-blue-100 px-3 py-1">
+                  <Text className="text-sm font-medium text-blue-600">
+                    {navigationState === 'calculating' ? 'Calculating...' : 'Navigating'}
                   </Text>
                 </View>
-              </TouchableOpacity>
-            ))}
-
-            {activeFilter && (
-              <TouchableOpacity
-                className="mr-2 rounded-full bg-red-100 px-3 py-2"
-                onPress={() => handleFilterPress(null)}
-                activeOpacity={0.7}>
-                <Text className="text-xs font-medium text-red-600">✕ Reset</Text>
-              </TouchableOpacity>
-            )}
-          </ScrollView>
+              )}
+            </View>
+          </View>
         </View>
+      </GestureDetector>
+
+      {/* Filter/Sort Options - Not draggable */}
+      <View className="px-6 pb-4">
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{
+            paddingHorizontal: 0,
+            alignItems: 'center',
+            paddingRight: 16,
+          }}
+          style={{ flexGrow: 0 }}>
+          {FILTER_OPTIONS.map((option) => (
+            <TouchableOpacity
+              key={option.key}
+              className={`mr-2 rounded-full px-3 py-2 ${
+                activeFilter === option.key ? 'bg-green-500 shadow-sm' : 'bg-white shadow-sm'
+              }`}
+              onPress={() => handleFilterPress(option.key)}
+              activeOpacity={0.7}>
+              <View className="flex-row items-center">
+                <Text className="mr-1 text-xs">{option.icon}</Text>
+                <Text
+                  className={`text-xs ${
+                    activeFilter === option.key
+                      ? 'font-semibold text-white'
+                      : 'font-medium text-gray-700'
+                  }`}>
+                  {option.label}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+          {activeFilter && (
+            <TouchableOpacity
+              className="mr-2 rounded-full bg-red-100 px-3 py-2"
+              onPress={() => handleFilterPress(null)}
+              activeOpacity={0.7}>
+              <Text className="text-xs font-medium text-red-600">✕ Reset</Text>
+            </TouchableOpacity>
+          )}
+        </ScrollView>
       </View>
     </View>
   );
@@ -388,10 +395,10 @@ export default function DraggablePullUpPanel({
       style={[
         {
           position: 'absolute',
-          bottom: 0,
+          bottom: 10,
           left: 0,
           right: 0,
-          zIndex: 20,
+          zIndex: 25,
           backgroundColor: 'transparent',
           // Add subtle shadow for better depth
           shadowColor: '#000',
@@ -405,63 +412,60 @@ export default function DraggablePullUpPanel({
         },
         animatedStyle,
       ]}>
-      <GestureDetector gesture={panGesture}>
-        <View
-          className="flex-1"
-          style={{
-            borderTopLeftRadius: 30, // Match header radius
-            borderTopRightRadius: 30, // Match header radius
-            overflow: 'hidden', // Ensure content follows the curve
-          }}>
-          {renderHeader()}
+      <View
+        className="flex-1"
+        style={{
+          borderTopLeftRadius: 30, // Match header radius
+          borderTopRightRadius: 30, // Match header radius
+          overflow: 'hidden', // Ensure content follows the curve
+        }}>
+        {renderHeader()}
 
-          {/* Content Area */}
-          <View className="flex-1 bg-[#2F6E77]">
-            {sortedSpots.length === 0 ? (
-              renderEmptyState()
-            ) : (
-              <ScrollView
-                ref={scrollViewRef}
-                className="flex-1"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={{
-                  paddingHorizontal: 16,
-                  paddingBottom: 100, // Extra space at bottom
-                }}
-                onScroll={handleScroll}
-                scrollEventThrottle={100}
-                decelerationRate="fast"
-                snapToInterval={100} // Snap to each card
-                snapToAlignment="start">
-                {sortedSpots.map((spot, sortedIndex) => {
-                  try {
-                    // Find if this spot is the selected one
-                    const originalIndex = spots.findIndex((s) => s.id === spot.id);
-                    const isSelected = originalIndex === selectedIndex;
+        {/* Content Area */}
+        <View className="flex-1 bg-[#2F6E77]">
+          {sortedSpots.length === 0 ? (
+            renderEmptyState()
+          ) : (
+            <ScrollView
+              ref={scrollViewRef}
+              className="flex-1"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{
+                paddingHorizontal: 16,
+                paddingBottom: 100, // Extra space at bottom
+              }}
+              scrollEventThrottle={16}
+              bounces={false}
+              overScrollMode="never"
+              nestedScrollEnabled={true}>
+              {sortedSpots.map((spot, sortedIndex) => {
+                try {
+                  // Find if this spot is the selected one
+                  const originalIndex = spots.findIndex((s) => s.id === spot.id);
+                  const isSelected = originalIndex === selectedIndex;
 
-                    return (
-                      <View key={spot.id} style={{ marginBottom: 12 }}>
-                        <ParkingSpotCard
-                          spot={spot}
-                          isSelected={isSelected}
-                          onPress={() => handleSpotPress(sortedIndex, spot)}
-                          onStartNavigation={() => onStartNavigation?.(originalIndex, spot)}
-                          isNavigating={isNavigating}
-                          navigationState={navigationState}
-                          showNavigationButton={isSelected}
-                        />
-                      </View>
-                    );
-                  } catch (error) {
-                    console.warn('Error rendering spot card:', error);
-                    return null;
-                  }
-                })}
-              </ScrollView>
-            )}
-          </View>
+                  return (
+                    <View key={spot.id} style={{ marginBottom: 12 }}>
+                      <ParkingSpotCard
+                        spot={spot}
+                        isSelected={isSelected}
+                        onPress={() => handleSpotPress(sortedIndex, spot)}
+                        onStartNavigation={() => onStartNavigation?.(originalIndex, spot)}
+                        isNavigating={isNavigating}
+                        navigationState={navigationState}
+                        showNavigationButton={isSelected}
+                      />
+                    </View>
+                  );
+                } catch (error) {
+                  console.warn('Error rendering spot card:', error);
+                  return null;
+                }
+              })}
+            </ScrollView>
+          )}
         </View>
-      </GestureDetector>
+      </View>
     </Animated.View>
   );
 }

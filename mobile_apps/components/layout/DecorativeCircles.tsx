@@ -4,7 +4,7 @@ import { View, Dimensions } from 'react-native';
 const { width: screenWidth } = Dimensions.get('window');
 
 interface DecorativeCirclesProps {
-  variant?: 'default' | 'top-left' | 'bottom-right' | 'scattered';
+  variant?: 'default' | 'top-left' | 'bottom-right' | 'scattered' | 'header-right';
   opacity?: number;
 }
 
@@ -18,6 +18,30 @@ export default function DecorativeCircles({
     };
 
     switch (variant) {
+      case 'header-right':
+        return (
+          <View className="absolute inset-0" style={baseStyle}>
+            <View
+              className="absolute rounded-full bg-[#5B9396]"
+              style={{
+                width: screenWidth * 0.4,
+                height: screenWidth * 0.4,
+                right: screenWidth * 0.17,
+                top: -screenWidth * 0.15,
+              }}
+            />
+            <View
+              className="absolute rounded-full bg-[#5B9396]"
+              style={{
+                width: screenWidth * 0.4,
+                height: screenWidth * 0.4,
+                right: -screenWidth * 0.1,
+                top: -screenWidth * 0.05,
+              }}
+            />
+          </View>
+        );
+
       case 'top-left':
         return (
           <View className="absolute inset-0" style={baseStyle}>
