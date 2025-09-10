@@ -1,3 +1,5 @@
+// web-admin/src/app/page.tsx
+
 "use client";
 import Modal from "../components/modal";
 import { useModal } from "./context/modalContext";

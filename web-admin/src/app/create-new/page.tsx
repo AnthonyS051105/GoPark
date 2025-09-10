@@ -1,3 +1,4 @@
+// web-admin/src/app/create-new/page.tsx
 "use client";
 import { ArrowBigDown } from "lucide-react";
 import { ArrowBigLeft } from "lucide-react";
@@ -10,7 +11,8 @@ import { useRouter } from "next/navigation";
 
 export default function createParking() {
     const router = useRouter();
-      const [isOpen, setIsOpen] = useState(false);
+    const [isOpen, setIsOpen] = useState(false);
+    const [footageLabel, setFootageLabel] = useState<string | null>(null);
 
     return (
         <main className="flex flex-col items-center min-h-screen bg-[#EAEAEA]">
@@ -25,7 +27,7 @@ export default function createParking() {
 
                 <div>
                     <button onClick={() => setIsOpen(true)}
-                            className="hover:bg-[#093E47] absolute bottom-7 right-10 bg-[#062C32] rounded-full size-[85px] justify-center flex items-center">
+                            className="hover:bg-[#2F6E77] absolute bottom-7 right-10 bg-[#062C32] rounded-full size-[85px] justify-center flex items-center">
                         <img className="h-[45px] w-[55px]" src="/cam.png" alt="camera" />
                     </button>
                 </div>
@@ -35,24 +37,29 @@ export default function createParking() {
                 </div>
 
                 <div>
-                    <button className="hover:bg-[#093E47] absolute bottom-16 left-8 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
+                    <button className="hover:bg-[#2F6E77] absolute bottom-16 left-8 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
                         <ArrowBigLeft className="fill-white size-[30px]" size={36} color="#ffffff" strokeWidth={1.5} />
                     </button>
                 </div>
                 <div>
-                    <button className="hover:bg-[#093E47] absolute bottom-6 left-20 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
+                    <button className="hover:bg-[#2F6E77] absolute bottom-6 left-20 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
                         <ArrowBigDown className="fill-white size-[30px]" size={36} color="#ffffff" strokeWidth={1.5} />
                     </button>
                 </div>
                 <div>
-                    <button className="hover:bg-[#093E47] absolute bottom-16 left-32 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
+                    <button className="hover:bg-[#2F6E77] absolute bottom-16 left-32 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
                         <ArrowBigRight className="fill-white size-[30px]" size={36} color="#ffffff" strokeWidth={1.5} />
                     </button>
                 </div>
                 <div>
-                    <button className="hover:bg-[#093E47] absolute bottom-28 left-20 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
+                    <button className="hover:bg-[#2F6E77] absolute bottom-28 left-20 bg-[#062C32] rounded-full size-[45px] justify-center flex items-center">
                         <ArrowBigUp className="fill-white size-[30px]" size={36} color="#ffffff" strokeWidth={1.5} />
                     </button>
+                </div>
+
+                <div className="absolute flex items-center justify-center bottom-7">
+                  <button onClick={() => router.push("/slot-draw")}
+                          className="hover:bg-[#2F6E77] text-white w-[170px] h-[35px] font-bold bg-[#062C32] rounded-3xl justify-center flex items-center">Next</button>
                 </div>
                 
             </div>
@@ -71,23 +78,21 @@ export default function createParking() {
             <div className="flex items-center mb-1.5">
               <Info className="fill-[#093E47] mr-1" size={40} color="#ffffff" strokeWidth={2.75} />
             <h1 className="text-base font-semibold items-center justify-center ml-2 text-black">
-              Berikan nama untuk footage parkir anda
+              Berikan label untuk footage parkir anda
             </h1>
             </div>
 
             <form className="flex flex-col mx-12">
-              <p className="text-[#909090] font-semibold text-sm mx-1 mb-1">Nama</p>
-              <input
-                type="text"
-                className="bg-[#E2E2E2] rounded-xl px-3 py-2 h-[40px] focus:outline-none focus:ring-2 focus:ring-[#2F6E77]"
-              />
 
-              <p className="text-[#909090] font-semibold text-sm mx-1 my-1">Alamat</p>
-              <input
-                type="text"
-                className="bg-[#E2E2E2] rounded-xl px-3 py-2 h-[40px] focus:outline-none focus:ring-2 focus:ring-[#2F6E77]"
-              />
-              <div className="flex justify-center items-center mt-6">
+              <div className="flex flex-col mb-4 my-7">
+                <p className="text-[#909090] font-semibold text-sm mx-1 my-1">Label</p>
+                    <input
+                      type="text"
+                      className="bg-[#E2E2E2] rounded-xl px-3 py-2 h-[40px] focus:outline-none focus:ring-2 focus:ring-[#2F6E77]"
+                    />
+              </div>
+              
+              <div className="flex justify-center items-center mt-9">
                 <button onClick={() => router.push("/create-new")}
                   type="submit"
                   className="w-[245px] py-2 bg-[#2F6E77] text-white size-base rounded-full hover:bg-[#093E47] transition duration-200 flex items-center justify-center font-semibold
