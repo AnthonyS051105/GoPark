@@ -59,16 +59,18 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#5A9BA8] to-[#2F6E77] relative overflow-hidden">
-      {/* Decorative circles */}
-      <div className="absolute top-0 left-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2"></div>
-      <div className="absolute top-1/2 left-1/4 w-64 h-64 bg-white/5 rounded-full blur-2xl"></div>
-      <div className="absolute bottom-1/4 right-1/3 w-80 h-80 bg-white/5 rounded-full blur-2xl"></div>
+    <main className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-[#4B919B] to-[#093E47] relative overflow-x-hidden">
+        {/* Decorative circles - matching the design */}
+        <div className="fixed top-0 left-0 w-96 h-96 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="fixed bottom-0 right-0 w-96 h-96 bg-white/10 rounded-full translate-x-1/2 translate-y-1/2"></div>
+        <div className="fixed top-0 left-1/20 w-96 h-96 bg-white/5 rounded-full -translate-y-1/2"></div>
+        <div className="fixed top-1/20 left-0 w-96 h-96 bg-white/5 rounded-full -translate-x-1/2"></div>
+        <div className="fixed bottom-0 right-1/20 w-96 h-96 bg-white/5 rounded-full translate-y-1/2"></div>
+        <div className="fixed bottom-1/20 right-0 w-96 h-96 bg-white/5 rounded-full translate-x-1/2"></div>
+        <div className="relative z-10 flex flex-col items-center space-y-2 max-w-sm w-full mx-auto px-6 top-10">
 
-      <div className="relative z-10 flex flex-col items-center space-y-8 max-w-md w-full mx-auto px-6">
         {/* Title */}
-        <h1 className="text-4xl font-bold text-white text-center mb-8">
+        <h1 className="text-5xl font-bold text-white text-center mb-12">
           Welcome Back
         </h1>
 
@@ -76,7 +78,7 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full py-4 px-6 bg-white hover:bg-gray-50 text-gray-700 font-medium rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-3 disabled:opacity-70 disabled:transform-none"
+          className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-[#093E47] text-xs font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-3 disabled:opacity-70 disabled:transform-none"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -95,18 +97,18 @@ export default function LoginPage() {
         </div>
 
         {/* Login Form */}
-        <form onSubmit={handleSubmit} className="w-full bg-white/90 backdrop-blur-sm rounded-3xl p-8 shadow-2xl">
-          <div className="space-y-6">
+        <form onSubmit={handleSubmit} className="w-full mb-15 bg-white backdrop-blur-sm rounded-3xl py-8 px-6 shadow-2xl">
+          <div className="space-y-3 flex flex-col text-xs">
             {/* Email Input */}
             <div>
-              <label className="block text-gray-600 text-sm font-medium mb-2">
+              <label className="block text-gray-600 font-medium mb-2 ml-1">
                 Email Address
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all"
+                className="w-full px-4 py-2 bg-[#E2E2E2] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F6E77] focus:border-transparent transition-all"
                 placeholder="Enter your email"
                 required
               />
@@ -114,7 +116,7 @@ export default function LoginPage() {
 
             {/* Password Input */}
             <div>
-              <label className="block text-gray-600 text-sm font-medium mb-2">
+              <label className="block text-gray-600 font-medium mb-2 ml-1">
                 Password
               </label>
               <div className="relative">
@@ -122,7 +124,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all pr-12"
+                  className="w-full px-4 py-2 bg-[#E2E2E2] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F6E77] focus:border-transparent transition-all pr-12"
                   placeholder="Enter your password"
                   required
                 />
@@ -138,7 +140,7 @@ export default function LoginPage() {
 
             {/* Error Message */}
             {error && (
-              <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-xl">
+              <div className="text-red-500 text-center bg-red-50 p-3 rounded-xl">
                 {error}
               </div>
             )}
@@ -147,13 +149,13 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-70 disabled:transform-none"
+              className="w-[70%] mx-auto my-3 py-2 bg-[#2F6E77] hover:bg-[#093E47] text-white font-semibold rounded-3xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-70 disabled:transform-none"
             >
               {loading ? 'Signing In...' : 'Log In'}
             </button>
 
             {/* Sign Up Link */}
-            <div className="text-center">
+            <div className="text-center text-xs">
               <span className="text-gray-600">Don't have an account? </span>
               <button
                 type="button"
