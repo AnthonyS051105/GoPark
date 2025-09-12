@@ -10,10 +10,13 @@ import Image from "next/image";
 import { useState } from "react";
 import { Info } from "lucide-react";
 import React from "react";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function HomePage() {
   const router = useRouter();
   const { isOpen, openModal, closeModal } = useModal();
+  const { user, userData, logout } = useAuth();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,7 +24,8 @@ export default function HomePage() {
   };
 
   return (
-    <main className="flex flex-col items-center min-h-screen bg-[#EAEAEA]">
+    <ProtectedRoute>
+      <main className="flex flex-col items-center min-h-screen bg-[#EAEAEA]">
 
       <div className="flex flex-col items-center mt-8">
           <img src="/cargradien.png" alt="Logo2" 
@@ -152,6 +156,7 @@ export default function HomePage() {
 
       
       
-    </main>
+      </main>
+    </ProtectedRoute>
   );
 }

@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, auth as firebase_auth
 import bcrypt
 import jwt
 from datetime import datetime, timedelta
@@ -632,6 +632,414 @@ def get_profile():
         
     except Exception as e:
         print(f"❌ Profile error: {e}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+# ✅ NEW: Admin-specific authentication endpoints
+@app.route('/api/admin/auth/signup', methods=['POST'])
+def admin_signup():
+    """Admin registration endpoint"""
+    try:
+        if not db:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection not available'
+            }), 500
+
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        display_name = data.get('displayName', '').strip()
+        
+        if not all([email, password, display_name]):
+            return jsonify({
+                'success': False,
+                'error': 'Email, password, and display name are required'
+            }), 400
+        
+        if not validate_email(email):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid email format'
+            }), 400
+        
+        if len(password) < 6:
+            return jsonify({
+                'success': False,
+                'error': 'Password must be at least 6 characters'
+            }), 400
+        
+        print(f"🔐 Admin signup attempt for: {email}")
+        
+        # Check if admin already exists
+        admins_ref = db.collection('admins')
+        existing_admin_docs = admins_ref.where('email', '==', email).limit(1).get()
+        
+        if len(existing_admin_docs) > 0:
+            return jsonify({
+                'success': False,
+                'error': 'Admin already exists with this email'
+            }), 409
+        
+        # Hash password
+        hashed_password = hash_password(password)
+        
+        # Create admin document
+        admin_data = {
+            'displayName': display_name,
+            'email': email,
+            'password': hashed_password,
+            'role': 'admin',
+            'createdAt': datetime.utcnow(),
+            'updatedAt': datetime.utcnow(),
+            'lastLogin': datetime.utcnow(),
+            'isActive': True,
+            'loginCount': 1,
+            'authProvider': 'email',
+            'emailVerified': False
+        }
+        
+        # Add admin to Firestore
+        doc_ref = admins_ref.add(admin_data)
+        admin_id = doc_ref[1].id
+        
+        # Generate JWT token
+        token = generate_token(admin_id)
+        
+        # Return admin data (without password)
+        admin_response = {
+            'id': admin_id,
+            'displayName': admin_data['displayName'],
+            'email': admin_data['email'],
+            'role': admin_data['role'],
+            'createdAt': admin_data['createdAt'].isoformat(),
+            'loginCount': admin_data['loginCount'],
+            'authProvider': admin_data['authProvider']
+        }
+        
+        print(f"✅ Admin signup successful: {email}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Admin registration successful',
+            'admin': admin_response,
+            'token': token
+        }), 201
+        
+    except Exception as e:
+        print(f"❌ Admin signup error: {e}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/admin/auth/login', methods=['POST'])
+def admin_login():
+    """Admin login endpoint"""
+    try:
+        if not db:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection not available'
+            }), 500
+
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        email = data.get('email', '').lower().strip()
+        password = data.get('password', '')
+        
+        if not all([email, password]):
+            return jsonify({
+                'success': False,
+                'error': 'Email and password are required'
+            }), 400
+        
+        if not validate_email(email):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid email format'
+            }), 400
+        
+        print(f"🔐 Admin login attempt for: {email}")
+        
+        # Find admin by email
+        admins_ref = db.collection('admins')
+        admin_docs = admins_ref.where('email', '==', email).limit(1).get()
+        
+        if len(admin_docs) == 0:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid email or password'
+            }), 401
+        
+        admin_doc = admin_docs[0]
+        admin_data = admin_doc.to_dict()
+        admin_id = admin_doc.id
+        
+        # Verify password
+        if not admin_data.get('password') or not check_password(password, admin_data['password']):
+            return jsonify({
+                'success': False,
+                'error': 'Invalid email or password'
+            }), 401
+        
+        # Update login info
+        update_data = {
+            'updatedAt': datetime.utcnow(),
+            'lastLogin': datetime.utcnow(),
+            'loginCount': admin_data.get('loginCount', 0) + 1
+        }
+        
+        admins_ref.document(admin_id).update(update_data)
+        
+        # Generate JWT token
+        token = generate_token(admin_id)
+        
+        # Return admin data (without password)
+        admin_response = {
+            'id': admin_id,
+            'displayName': admin_data['displayName'],
+            'email': admin_data['email'],
+            'role': admin_data['role'],
+            'createdAt': admin_data['createdAt'].isoformat(),
+            'loginCount': update_data['loginCount'],
+            'authProvider': admin_data.get('authProvider', 'email')
+        }
+        
+        print(f"✅ Admin login successful: {email} (Login #{update_data['loginCount']})")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Admin login successful',
+            'admin': admin_response,
+            'token': token
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Admin login error: {e}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/admin/auth/google', methods=['POST'])
+def admin_google_login():
+    """Admin Google OAuth login/signup endpoint"""
+    try:
+        if not db:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection not available'
+            }), 500
+
+        if not GOOGLE_CLIENT_ID:
+            return jsonify({
+                'success': False,
+                'error': 'Google OAuth not configured'
+            }), 500
+
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided'
+            }), 400
+        
+        id_token_string = data.get('idToken')
+        if not id_token_string:
+            return jsonify({
+                'success': False,
+                'error': 'ID token is required'
+            }), 400
+        
+        # Verify Google token
+        google_user = verify_google_token(id_token_string)
+        if not google_user:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid Google token'
+            }), 400
+        
+        email = google_user['email'].lower().strip()
+        google_id = google_user['google_id']
+        display_name = google_user['name']
+        profile_picture = google_user['picture']
+        email_verified = google_user['email_verified']
+        
+        print(f"🔐 Admin Google login attempt for: {email}")
+        
+        # Check if admin exists in Firebase
+        admins_ref = db.collection('admins')
+        
+        # First check by email
+        existing_admin_docs = admins_ref.where('email', '==', email).limit(1).get()
+        
+        admin_doc = None
+        admin_data = None
+        admin_id = None
+        
+        if len(existing_admin_docs) > 0:
+            # Admin exists, update Google info if needed
+            admin_doc = existing_admin_docs[0]
+            admin_data = admin_doc.to_dict()
+            admin_id = admin_doc.id
+            
+            print(f"📝 Existing admin found: {email}")
+            
+            # Update Google-specific fields
+            update_data = {
+                'updatedAt': datetime.utcnow(),
+                'lastLogin': datetime.utcnow(),
+                'loginCount': admin_data.get('loginCount', 0) + 1
+            }
+            
+            # Add Google info if not present
+            if not admin_data.get('googleId'):
+                update_data['googleId'] = google_id
+            if not admin_data.get('profilePicture'):
+                update_data['profilePicture'] = profile_picture
+            if 'emailVerified' not in admin_data:
+                update_data['emailVerified'] = email_verified
+                
+            admins_ref.document(admin_id).update(update_data)
+            
+            # Update local admin_data for response
+            admin_data.update(update_data)
+            
+        else:
+            # Create new admin with Google info
+            print(f"👤 Creating new Google admin: {email}")
+            
+            admin_data = {
+                'displayName': display_name,
+                'email': email,
+                'password': None,   # Google users don't need password
+                'googleId': google_id,
+                'profilePicture': profile_picture,
+                'emailVerified': email_verified,
+                'role': 'admin',
+                'createdAt': datetime.utcnow(),
+                'updatedAt': datetime.utcnow(),
+                'lastLogin': datetime.utcnow(),
+                'isActive': True,
+                'loginCount': 1,
+                'authProvider': 'google'  # Track auth method
+            }
+            
+            # Add admin to Firestore
+            doc_ref = admins_ref.add(admin_data)
+            admin_id = doc_ref[1].id
+        
+        # Generate JWT token
+        token = generate_token(admin_id)
+        
+        # Return admin data (without password and sensitive info)
+        admin_response = {
+            'id': admin_id,
+            'displayName': admin_data['displayName'],
+            'email': admin_data['email'],
+            'role': admin_data['role'],
+            'profilePicture': admin_data.get('profilePicture', ''),
+            'emailVerified': admin_data.get('emailVerified', False),
+            'createdAt': admin_data['createdAt'].isoformat(),
+            'loginCount': admin_data['loginCount'],
+            'authProvider': admin_data.get('authProvider', 'google')
+        }
+        
+        print(f"✅ Admin Google login successful: {email} (Login #{admin_data['loginCount']})")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Admin Google login successful',
+            'admin': admin_response,
+            'token': token
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Admin Google login error: {e}")
+        print(f"Traceback: {traceback.format_exc()}")
+        return jsonify({
+            'success': False,
+            'error': 'Internal server error'
+        }), 500
+
+@app.route('/api/admin/auth/profile', methods=['GET'])
+def admin_profile():
+    """Get admin profile endpoint"""
+    try:
+        if not db:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection not available'
+            }), 500
+
+        # Get token from Authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return jsonify({
+                'success': False,
+                'error': 'Authorization token required'
+            }), 401
+
+        token = auth_header.split(' ')[1]
+        admin_id = verify_token(token)
+        
+        if not admin_id:
+            return jsonify({
+                'success': False,
+                'error': 'Invalid or expired token'
+            }), 401
+
+        # Get admin data from Firestore
+        admin_doc = db.collection('admins').document(admin_id).get()
+        
+        if not admin_doc.exists:
+            return jsonify({
+                'success': False,
+                'error': 'Admin not found'
+            }), 404
+        
+        admin_data = admin_doc.to_dict()
+        
+        # Return admin data (without password)
+        admin_response = {
+            'id': admin_id,
+            'displayName': admin_data['displayName'],
+            'email': admin_data['email'],
+            'role': admin_data['role'],
+            'profilePicture': admin_data.get('profilePicture', ''),
+            'emailVerified': admin_data.get('emailVerified', False),
+            'createdAt': admin_data['createdAt'].isoformat(),
+            'loginCount': admin_data.get('loginCount', 0),
+            'authProvider': admin_data.get('authProvider', 'email')
+        }
+        
+        return jsonify({
+            'success': True,
+            'admin': admin_response
+        }), 200
+        
+    except Exception as e:
+        print(f"❌ Admin profile error: {e}")
         print(f"Traceback: {traceback.format_exc()}")
         return jsonify({
             'success': False,
