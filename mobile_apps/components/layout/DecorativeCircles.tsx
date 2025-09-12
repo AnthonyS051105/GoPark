@@ -26,8 +26,8 @@ export default function DecorativeCircles({
               style={{
                 width: screenWidth * 0.4,
                 height: screenWidth * 0.4,
-                right: screenWidth * 0.17,
-                top: -screenWidth * 0.15,
+                right: screenWidth * 0.14,
+                top: -screenWidth * 0.2,
               }}
             />
             <View
@@ -35,8 +35,8 @@ export default function DecorativeCircles({
               style={{
                 width: screenWidth * 0.4,
                 height: screenWidth * 0.4,
-                right: -screenWidth * 0.1,
-                top: -screenWidth * 0.05,
+                right: -screenWidth * 0.13,
+                top: -screenWidth * 0.15,
               }}
             />
           </View>

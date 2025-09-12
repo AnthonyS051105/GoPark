@@ -77,10 +77,8 @@ export default function DashboardPage() {
           router.push('/favorite');
           break;
         case 'parking':
-          // Reset navigation state when going back to parking
-          setIsNavigating(false);
-          setNavigationState('idle');
-          console.log('Parking tab pressed');
+          // Navigate to live parking page
+          router.push('/live-parking' as any);
           break;
         case 'history':
           // Navigate to history page

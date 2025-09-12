@@ -65,8 +65,10 @@ const Header: React.FC<HeaderProps> = ({
       <View className="relative">
         <View className="overflow-hidden bg-[#2F6E77]">
           {/* Decorative Circles - positioned to cover status bar area */}
-          <DecorativeCircles variant="header-right" />
-          overflow-hidden
+          <View style={{ zIndex: 10 }}>
+            <DecorativeCircles variant="header-right" />
+          </View>
+
           <SafeAreaView>
             {/* Header Content */}
             <View className="flex-row items-center px-5 pb-2 pt-8">
@@ -82,7 +84,7 @@ const Header: React.FC<HeaderProps> = ({
                   />
                 </TouchableOpacity>
               )}
-              <Text className="mt-6 text-xl font-semibold text-white">{title}</Text>
+              <Text className="mb-3 mt-8 text-2xl font-semibold text-white">{title}</Text>
               {rightElement && <View className="ml-auto mt-6">{rightElement}</View>}
             </View>
 
@@ -143,9 +145,6 @@ const Header: React.FC<HeaderProps> = ({
         {/* Curved bottom shape using View */}
         <View className="rounded-b-full bg-[#2F6E77] py-3" />
       </View>
-
-      {/* Ensure white background continues */}
-      <View className="h-4 bg-white" />
     </View>
   );
 };

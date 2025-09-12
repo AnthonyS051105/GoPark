@@ -2,7 +2,7 @@
 
 // ✅ Multiple IP addresses to try (in priority order)
 const POSSIBLE_BASE_URLS = [
-  'http://10.72.12.185:5000/api', // Current network interface - UPDATED
+  'http://10.38.23.152:5000/api', // Current network interface - UPDATED
   'http://localhost:5000/api', // Local fallback
   'http://127.0.0.1:5000/api', // Loopback fallback
   'http://192.168.122.1:5000/api', // Virtual interface
