@@ -40,9 +40,9 @@ const LevelInfoDisplay: React.FC<LevelInfoDisplayProps> = ({ levelName, spots, i
 
   const getAvailabilityColor = (available: number, total: number) => {
     const percentage = (available / total) * 100;
-    if (percentage > 50) return '#22c55e'; // Green
+    if (percentage > 50) return '#2F663A'; // Green
     if (percentage > 20) return '#f59e0b'; // Yellow
-    return '#ef4444'; // Red
+    return '#5E2222'; // Red
   };
 
   const availabilityPercentage = Math.round((spots.available / spots.total) * 100);
@@ -104,7 +104,7 @@ const LevelInfoDisplay: React.FC<LevelInfoDisplayProps> = ({ levelName, spots, i
             style={{
               fontSize: 28,
               fontWeight: 'bold',
-              color: '#22c55e',
+              color: '#2F663A',
             }}>
             {spots.available}
           </Text>
@@ -123,7 +123,7 @@ const LevelInfoDisplay: React.FC<LevelInfoDisplayProps> = ({ levelName, spots, i
             style={{
               fontSize: 28,
               fontWeight: 'bold',
-              color: '#ef4444',
+              color: '#5E2222',
             }}>
             {spots.occupied}
           </Text>
@@ -142,7 +142,7 @@ const LevelInfoDisplay: React.FC<LevelInfoDisplayProps> = ({ levelName, spots, i
             style={{
               fontSize: 28,
               fontWeight: 'bold',
-              color: '#3b82f6',
+              color: '#2B3E77',
             }}>
             {spots.total}
           </Text>
@@ -167,14 +167,14 @@ const LevelInfoDisplay: React.FC<LevelInfoDisplayProps> = ({ levelName, spots, i
         }}>
         <View
           style={{
-            backgroundColor: '#ef4444',
+            backgroundColor: '#5E2222',
             height: '100%',
             width: `${(spots.occupied / spots.total) * 100}%`,
           }}
         />
         <View
           style={{
-            backgroundColor: '#22c55e',
+            backgroundColor: '#2F663A',
             height: '100%',
             width: `${(spots.available / spots.total) * 100}%`,
             position: 'absolute',
@@ -196,7 +196,7 @@ const LevelInfoDisplay: React.FC<LevelInfoDisplayProps> = ({ levelName, spots, i
             style={{
               width: 12,
               height: 12,
-              backgroundColor: '#ef4444',
+              backgroundColor: '#5E2222',
               borderRadius: 2,
               marginRight: 4,
             }}
@@ -208,7 +208,7 @@ const LevelInfoDisplay: React.FC<LevelInfoDisplayProps> = ({ levelName, spots, i
             style={{
               width: 12,
               height: 12,
-              backgroundColor: '#22c55e',
+              backgroundColor: '#2F663A',
               borderRadius: 2,
               marginRight: 4,
             }}
