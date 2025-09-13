@@ -5,6 +5,7 @@ import Navbar from "@/components/navbar";
 import { ModalProvider } from "./context/modalContext";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Modal from "../components/modal";
+import ImageModal from "../components/imageModal";
 
 const poppins = Poppins({
   subsets: ['latin'],   // dukungan karakter
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Navbar />
             <main className="min-h-screen">{children}</main>
             <Modal />
+            <ImageModal />
           </ModalProvider>
         </AuthProvider>
       </body>

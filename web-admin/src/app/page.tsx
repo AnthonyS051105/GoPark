@@ -2,6 +2,7 @@
 
 "use client";
 import Modal from "../components/modal";
+import ImageModal from "../components/imageModal";
 import { useModal } from "./context/modalContext";
 import { ModalProvider } from "../app/context/modalContext";
 import { useRouter } from "next/navigation";
@@ -154,7 +155,6 @@ export default function HomePage() {
         </div>
       </footer>
 
-      
       
       </main>
     </ProtectedRoute>

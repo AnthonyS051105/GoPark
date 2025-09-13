@@ -35,7 +35,7 @@ export default function Navbar() {
                     </Link>
                 </div>
                 <div className="py-6 gap-2 space-x-4 adjust ml-auto font-semibold text-white inline-flex items-center">
-                    <div><button onClick={openModal} className="hover:text-gray-400 cursor-pointer">Create</button></div>
+                    <div><button onClick={openModal} className="hover:text-gray-400 cursor-pointer">Create New</button></div>
                     <div><Link href="/profile" className=" hover:text-gray-400 cursor-pointer">Profile</Link></div>
                     <div className="flex items-center space-x-2">
                         <span className="text-sm">Welcome, {userData?.displayName || user?.email}</span>
