@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Info, Image } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useModal } from "../app/context/modalContext";
-import { projectService } from "../services/projectService";
+import { projectService, type ImageData } from "../services/projectService";
 
 export default function Modal() {
   const { 
@@ -12,7 +12,8 @@ export default function Modal() {
     projectData, 
     updateProjectData, 
     openImageModal,
-    addSavedProject 
+    addSavedProject,
+    loadSavedProjects
   } = useModal();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -31,21 +32,23 @@ export default function Modal() {
 
     try {
       // Save project to database
+      const imagesToSave: ImageData[] = projectData.images.map(img => ({
+        id: img.id,
+        label: img.label,
+        preview: img.preview,
+        fileName: img.file?.name || `image_${img.id}.jpg`
+      }));
+
       const savedProject = await projectService.saveProject({
         name: projectData.name,
         address: projectData.address,
-        images: projectData.images.map(img => ({
-          id: img.id,
-          label: img.label,
-          preview: img.preview,
-          fileName: img.file.name
-        }))
+        images: imagesToSave
       });
       
       console.log('Project saved successfully:', savedProject);
       
-      // Add to context for immediate UI update
-      addSavedProject(savedProject);
+      // Reload projects from Firestore to ensure consistency
+      await loadSavedProjects();
       
       // Navigate to form page with project ID
       router.push(`/newFormPage?projectId=${savedProject.id}`);

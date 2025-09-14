@@ -13,19 +13,24 @@ import { Info } from "lucide-react";
 import React from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useAuth } from "@/contexts/AuthContext";
+import { cleanupLargeDocuments } from "@/utils/cleanupLargeDocuments";
 
 export default function HomePage() {
   const router = useRouter();
-  const { isOpen, openModal, closeModal, savedProjects, loadSavedProjects } = useModal();
+  const { isOpen, openModal, closeModal, savedProjects, loadSavedProjects, clearSavedProjects, deleteSavedProject } = useModal();
   const { user, userData, logout } = useAuth();
 
   useEffect(() => {
-    // Load saved projects when component mounts
+    // Load saved projects when user is authenticated
     if (user) {
-      console.log('🏠 Homepage: Loading saved projects for user:', user.uid);
+      console.log('🏠 Homepage: User authenticated, loading projects for:', user.uid);
       loadSavedProjects();
+    } else {
+      console.log('🏠 Homepage: User not authenticated, clearing projects');
+      // Clear projects when user logs out
+      clearSavedProjects();
     }
-  }, [user, loadSavedProjects]);
+  }, [user, loadSavedProjects, clearSavedProjects]);
 
   useEffect(() => {
     console.log('🏠 Homepage: Saved projects updated:', savedProjects.length);
@@ -40,6 +45,49 @@ export default function HomePage() {
     router.push(`/newFormPage?projectId=${projectId}`);
   };
 
+  const handleCleanup = async () => {
+    if (confirm('This will clean up large documents that may be causing errors. Continue?')) {
+      try {
+        const result = await cleanupLargeDocuments();
+        alert(`Cleanup completed: ${result.cleanedCount} documents cleaned, ${result.deletedCount} documents deleted`);
+        // Reload projects after cleanup
+        loadSavedProjects();
+      } catch (error) {
+        console.error('Cleanup failed:', error);
+        alert('Cleanup failed. Check console for details.');
+      }
+    }
+  };
+
+  const handleTestCompression = async () => {
+    try {
+      // Test image compression
+      const testBase64 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+      const { projectService } = await import('../services/projectService');
+      const compressed = await projectService.compressImage(testBase64, 0.7);
+      
+      alert(`Compression test passed! ✅\nOriginal: ${testBase64.length} bytes\nCompressed: ${compressed.length} bytes`);
+    } catch (error) {
+      alert(`Compression test failed: ${error} ❌`);
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string, projectName: string) => {
+    if (confirm(`Are you sure you want to delete "${projectName}"?\n\nThis action cannot be undone and will permanently delete:\n- Project data\n- All images\n- All related information`)) {
+      try {
+        const success = await deleteSavedProject(projectId);
+        if (success) {
+          alert('✅ Project deleted successfully!');
+        } else {
+          alert('❌ Failed to delete project. Please try again.');
+        }
+      } catch (error) {
+        console.error('Delete error:', error);
+        alert('❌ An error occurred while deleting the project.');
+      }
+    }
+  };
+
   return (
     <ProtectedRoute>
       <main className="flex flex-col items-center min-h-screen bg-[#EAEAEA]">
@@ -50,10 +98,6 @@ export default function HomePage() {
       </div>
 
       <div className="flex flex-col items-center space-y-4">
-          {/* <h1 className="text-7xl font-extrabold h-[105px] w-[551px] justify-center items-center text-center
-                      bg-gradient-to-r from-[#093E47] to-[#1698AD] bg-clip-text text-transparent">
-              Go Parking
-          </h1> */}
           <p className="text-gray-600 text-center">
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. <br />
               Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. <br />
@@ -78,11 +122,18 @@ export default function HomePage() {
             </svg>
             <span className="text-lg font-bold text-teal-700">Your Project</span>
             <button 
-              onClick={loadSavedProjects}
-              className="ml-2 text-xs bg-teal-100 text-teal-700 px-2 py-1 rounded hover:bg-teal-200 transition-colors"
-              title="Refresh projects"
+              onClick={handleCleanup}
+              className="ml-2 text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 transition-colors"
+              title="Clean up large documents"
             >
-              🔄
+              🧹 Cleanup
+            </button>
+            <button 
+              onClick={handleTestCompression}
+              className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+              title="Test image compression"
+            >
+              🧪 Test
             </button>
           </div>
 
@@ -105,10 +156,31 @@ export default function HomePage() {
                       </p>
                     </div>
 
-                    {/* Kanan: icon edit */}
-                    <span>
-                      <img src="/edit.png" alt="pencil" className="w-5 h-5" />
-                    </span>
+                    {/* Kanan: action buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleProjectClick(project.id);
+                        }}
+                        className="hover:bg-white/20 p-1 rounded transition-colors"
+                        title="Edit project"
+                      >
+                        <img src="/edit.png" alt="edit" className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteProject(project.id, project.name);
+                        }}
+                        className="hover:bg-red-500/20 p-1 rounded transition-colors"
+                        title="Delete project"
+                      >
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
                   
                   {/* Project Details */}
@@ -121,15 +193,17 @@ export default function HomePage() {
                     </p>
                   </div>
                   
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleProjectClick(project.id);
-                    }}
-                    className="bg-white text-teal-700 px-4 py-1 rounded-full font-semibold mt-4 cursor-pointer hover:bg-[#E2E2E2] transition-colors"
-                  >
-                    Review
-                  </button>
+                  <div className="flex gap-2 mt-4">
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProjectClick(project.id);
+                      }}
+                      className="bg-white text-teal-700 px-4 py-1 rounded-full font-semibold cursor-pointer hover:bg-[#E2E2E2] transition-colors flex-1"
+                    >
+                      Open Project
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (

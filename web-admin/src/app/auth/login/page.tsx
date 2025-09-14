@@ -78,7 +78,7 @@ export default function LoginPage() {
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full py-3 px-4 bg-white hover:bg-gray-50 text-[#093E47] text-xs font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-3 disabled:opacity-70 disabled:transform-none"
+          className="w-full py-3 px-4 cursor-pointer bg-white hover:bg-gray-50 text-[#093E47] text-xs font-semibold rounded-2xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 flex items-center justify-center space-x-3 disabled:opacity-70 disabled:transform-none"
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -101,14 +101,14 @@ export default function LoginPage() {
           <div className="space-y-3 flex flex-col text-xs">
             {/* Email Input */}
             <div>
-              <label className="block text-gray-600 font-medium mb-2 ml-1">
+              <label className="block text-[#909090] font-semibold mb-2 ml-1">
                 Email Address
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 bg-[#E2E2E2] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F6E77] focus:border-transparent transition-all"
+                className="w-full px-4 py-2 bg-[#E2E2E2] text-[#444444] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F6E77] focus:border-transparent transition-all"
                 placeholder="Enter your email"
                 required
               />
@@ -116,7 +116,7 @@ export default function LoginPage() {
 
             {/* Password Input */}
             <div>
-              <label className="block text-gray-600 font-medium mb-2 ml-1">
+              <label className="block text-[#909090] font-semibold mb-2 ml-1">
                 Password
               </label>
               <div className="relative">
@@ -124,7 +124,7 @@ export default function LoginPage() {
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-2 bg-[#E2E2E2] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F6E77] focus:border-transparent transition-all pr-12"
+                  className="w-full px-4 py-2 bg-[#E2E2E2] text-[#444444] border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#2F6E77] focus:border-transparent transition-all pr-12"
                   placeholder="Enter your password"
                   required
                 />
@@ -149,18 +149,18 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-[70%] mx-auto my-3 py-2 bg-[#2F6E77] hover:bg-[#093E47] text-white font-semibold rounded-3xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-70 disabled:transform-none"
+              className="w-[70%] cursor-pointer mx-auto my-3 py-2 bg-[#2F6E77] hover:bg-[#093E47] text-white font-semibold rounded-3xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 disabled:opacity-70 disabled:transform-none"
             >
               {loading ? 'Signing In...' : 'Log In'}
             </button>
 
             {/* Sign Up Link */}
             <div className="text-center text-xs">
-              <span className="text-gray-600">Don't have an account? </span>
+              <span className="text-gray-600 font-medium">Don't have an account? </span>
               <button
                 type="button"
                 onClick={() => router.push('/auth/signup')}
-                className="text-teal-600 hover:text-teal-700 font-medium underline transition-colors"
+                className="text-[#2F6E77] cursor-pointer hover:text-[#093E47] font-medium underline transition-colors"
               >
                 Sign Up
               </button>

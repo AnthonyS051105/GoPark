@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useCallback } from "react";
 
 export type ImageData = {
   id: string;
@@ -11,7 +11,7 @@ export type ImageData = {
 export type SavedImageData = {
   id: string;
   label: string;
-  preview: string;
+  preview: string; // Base64 image data (compressed)
   fileName: string;
 };
 
@@ -48,6 +48,8 @@ type ModalContextType = {
   updateImageLabel: (imageId: string, label: string) => void;
   addSavedProject: (project: SavedProject) => void;
   loadSavedProjects: () => Promise<void>;
+  clearSavedProjects: () => void;
+  deleteSavedProject: (projectId: string) => Promise<boolean>;
 };
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -68,54 +70,54 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
   });
   const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
 
-  const openModal = () => setIsOpen(true);
-  const closeModal = () => {
+  const openModal = useCallback(() => setIsOpen(true), []);
+  const closeModal = useCallback(() => {
     setIsOpen(false);
     // Reset project data when main modal closes
     setProjectData({ name: '', address: '', images: [] });
-  };
+  }, []);
 
-  const openImageModal = () => setIsImageModalOpen(true);
-  const closeImageModal = () => setIsImageModalOpen(false);
+  const openImageModal = useCallback(() => setIsImageModalOpen(true), []);
+  const closeImageModal = useCallback(() => setIsImageModalOpen(false), []);
 
-  const updateProjectData = (data: Partial<ProjectData>) => {
+  const updateProjectData = useCallback((data: Partial<ProjectData>) => {
     setProjectData(prev => ({ ...prev, ...data }));
-  };
+  }, []);
 
-  const addImage = (image: ImageData) => {
+  const addImage = useCallback((image: ImageData) => {
     setProjectData(prev => ({
       ...prev,
       images: [...prev.images, image]
     }));
-  };
+  }, []);
 
-  const removeImage = (imageId: string) => {
+  const removeImage = useCallback((imageId: string) => {
     setProjectData(prev => ({
       ...prev,
       images: prev.images.filter(img => img.id !== imageId)
     }));
-  };
+  }, []);
 
-  const updateImageLabel = (imageId: string, label: string) => {
+  const updateImageLabel = useCallback((imageId: string, label: string) => {
     setProjectData(prev => ({
       ...prev,
       images: prev.images.map(img => 
         img.id === imageId ? { ...img, label } : img
       )
     }));
-  };
+  }, []);
 
-  const addSavedProject = (project: SavedProject) => {
+  const addSavedProject = useCallback((project: SavedProject) => {
     setSavedProjects(prev => [project, ...prev]);
-  };
+  }, []);
 
-  const loadSavedProjects = async () => {
+  const loadSavedProjects = useCallback(async () => {
     try {
       console.log('🔄 Loading saved projects...');
       // Import here to avoid circular dependencies
       const { projectService } = await import('../../services/projectService');
       const projects = await projectService.getProjects();
-      console.log('📊 Projects fetched from service:', projects.length);
+      console.log('📊 Projects fetched from Firestore:', projects.length);
       
       // Convert service ProjectData to SavedProject format
       const convertedProjects: SavedProject[] = projects.map(project => ({
@@ -127,12 +129,40 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
         updatedAt: project.updatedAt
       }));
       
-      console.log('✅ Setting saved projects:', convertedProjects.length);
+      console.log('✅ Setting saved projects from Firestore:', convertedProjects.length);
       setSavedProjects(convertedProjects);
     } catch (error) {
-      console.error('❌ Failed to load saved projects:', error);
+      console.error('❌ Failed to load saved projects from Firestore:', error);
+      setSavedProjects([]); // Clear projects on error
     }
-  };
+  }, []);
+
+  const clearSavedProjects = useCallback(() => {
+    console.log('🧹 Clearing saved projects');
+    setSavedProjects([]);
+  }, []);
+
+  const deleteSavedProject = useCallback(async (projectId: string): Promise<boolean> => {
+    try {
+      console.log('🗑️ Deleting project:', projectId);
+      // Import here to avoid circular dependencies
+      const { projectService } = await import('../../services/projectService');
+      const success = await projectService.deleteProject(projectId);
+      
+      if (success) {
+        // Remove from local state
+        setSavedProjects(prev => prev.filter(project => project.id !== projectId));
+        console.log('✅ Project deleted and removed from state');
+        return true;
+      } else {
+        console.error('❌ Failed to delete project from Firebase');
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error deleting project:', error);
+      return false;
+    }
+  }, []);
 
   return (
     <ModalContext.Provider value={{ 
@@ -149,7 +179,9 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
       removeImage,
       updateImageLabel,
       addSavedProject,
-      loadSavedProjects
+      loadSavedProjects,
+      clearSavedProjects,
+      deleteSavedProject
     }}>
       {children}
     </ModalContext.Provider>
