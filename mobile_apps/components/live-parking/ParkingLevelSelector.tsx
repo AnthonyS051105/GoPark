@@ -33,42 +33,30 @@ const ParkingLevelSelector: React.FC<ParkingLevelSelectorProps> = ({
       onPress={() => onLevelSelect(level.id)}
       disabled={!level.available}
       style={{
-        backgroundColor: !level.available
-          ? '#9ca3af'
-          : selectedLevel === level.id
-            ? '#219BA2'
-            : '#909090',
-        paddingHorizontal: 20,
-        paddingVertical: 12,
-        borderRadius: 25,
+        backgroundColor: selectedLevel === level.id ? '#219BA2' : '#909090',
+        paddingHorizontal: 15,
+        paddingVertical: 3,
+        borderRadius: 8,
         alignItems: 'center',
-        opacity: !level.available ? 0.6 : 1,
+        transform: [{ scale: selectedLevel === level.id ? 1.05 : 1 }],
+        elevation: selectedLevel === level.id ? 8 : 2,
+        shadowColor: selectedLevel === level.id ? '#219BA2' : '#000',
+        shadowOffset: {
+          width: 0,
+          height: selectedLevel === level.id ? 4 : 2,
+        },
+        shadowOpacity: selectedLevel === level.id ? 0.3 : 0.1,
+        shadowRadius: selectedLevel === level.id ? 6 : 3,
         ...style,
       }}>
       <Text
         style={{
-          color: !level.available
-            ? '#6b7280'
-            : selectedLevel === level.id
-              ? 'white'
-              : 'white',
-          fontWeight: '600',
-          fontSize: 14,
+          color: 'white',
+          fontWeight: selectedLevel === level.id ? '600' : '500',
+          fontSize: selectedLevel === level.id ? 14 : 13,
         }}>
         {level.name}
       </Text>
-
-      {/* Show availability indicator for selected level */}
-      {selectedLevel === level.id && level.spots && level.available && (
-        <Text
-          style={{
-            color: 'rgba(255, 255, 255, 0.8)',
-            fontSize: 10,
-            marginTop: 2,
-          }}>
-          {level.spots.available} available
-        </Text>
-      )}
     </TouchableOpacity>
   );
 

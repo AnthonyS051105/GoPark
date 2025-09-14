@@ -40,8 +40,8 @@ export default function LiveParkingPage() {
     {
       id: 'basement-1',
       name: 'Basement',
-      available: false,
-      spots: { total: 100, occupied: 100, available: 0 },
+      available: true,
+      spots: { total: 100, occupied: 60, available: 40 },
     },
     {
       id: 'basement-2',
@@ -52,8 +52,8 @@ export default function LiveParkingPage() {
     {
       id: 'basement-3',
       name: 'Basement',
-      available: false,
-      spots: { total: 80, occupied: 80, available: 0 },
+      available: true,
+      spots: { total: 80, occupied: 50, available: 30 },
     },
   ];
 
@@ -206,10 +206,11 @@ export default function LiveParkingPage() {
             {/* Section Title */}
             <Text
               style={{
-                fontSize: 18,
-                fontWeight: '600',
+                fontSize: 15,
+                fontFamily: 'Poppins-Bold',
                 color: '#1f2937',
-                marginBottom: 16,
+                marginBottom: 10,
+                marginTop: 5,
               }}>
               Pakuwon Parking Level
             </Text>
