@@ -8,16 +8,36 @@ export type ImageData = {
   preview: string;
 };
 
+export type SavedImageData = {
+  id: string;
+  label: string;
+  preview: string;
+  fileName: string;
+};
+
 export type ProjectData = {
+  id?: string;
   name: string;
   address: string;
   images: ImageData[];
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+export type SavedProject = {
+  id: string;
+  name: string;
+  address: string;
+  images: SavedImageData[];
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 type ModalContextType = {
   isOpen: boolean;
   isImageModalOpen: boolean;
   projectData: ProjectData;
+  savedProjects: SavedProject[];
   openModal: () => void;
   closeModal: () => void;
   openImageModal: () => void;
@@ -26,6 +46,8 @@ type ModalContextType = {
   addImage: (image: ImageData) => void;
   removeImage: (imageId: string) => void;
   updateImageLabel: (imageId: string, label: string) => void;
+  addSavedProject: (project: SavedProject) => void;
+  loadSavedProjects: () => Promise<void>;
 };
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
@@ -44,6 +66,7 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     address: '',
     images: []
   });
+  const [savedProjects, setSavedProjects] = useState<SavedProject[]>([]);
 
   const openModal = () => setIsOpen(true);
   const closeModal = () => {
@@ -82,11 +105,41 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
     }));
   };
 
+  const addSavedProject = (project: SavedProject) => {
+    setSavedProjects(prev => [project, ...prev]);
+  };
+
+  const loadSavedProjects = async () => {
+    try {
+      console.log('🔄 Loading saved projects...');
+      // Import here to avoid circular dependencies
+      const { projectService } = await import('../../services/projectService');
+      const projects = await projectService.getProjects();
+      console.log('📊 Projects fetched from service:', projects.length);
+      
+      // Convert service ProjectData to SavedProject format
+      const convertedProjects: SavedProject[] = projects.map(project => ({
+        id: project.id,
+        name: project.name,
+        address: project.address,
+        images: project.images, // Already in SavedImageData format
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt
+      }));
+      
+      console.log('✅ Setting saved projects:', convertedProjects.length);
+      setSavedProjects(convertedProjects);
+    } catch (error) {
+      console.error('❌ Failed to load saved projects:', error);
+    }
+  };
+
   return (
     <ModalContext.Provider value={{ 
       isOpen, 
       isImageModalOpen,
       projectData,
+      savedProjects,
       openModal, 
       closeModal,
       openImageModal,
@@ -94,7 +147,9 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
       updateProjectData,
       addImage,
       removeImage,
-      updateImageLabel
+      updateImageLabel,
+      addSavedProject,
+      loadSavedProjects
     }}>
       {children}
     </ModalContext.Provider>

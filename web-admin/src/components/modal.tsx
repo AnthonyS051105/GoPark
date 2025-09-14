@@ -11,7 +11,8 @@ export default function Modal() {
     closeModal, 
     projectData, 
     updateProjectData, 
-    openImageModal 
+    openImageModal,
+    addSavedProject 
   } = useModal();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -42,6 +43,9 @@ export default function Modal() {
       });
       
       console.log('Project saved successfully:', savedProject);
+      
+      // Add to context for immediate UI update
+      addSavedProject(savedProject);
       
       // Navigate to form page with project ID
       router.push(`/newFormPage?projectId=${savedProject.id}`);

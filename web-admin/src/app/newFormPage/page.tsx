@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { projectService, ProjectData } from "@/services/projectService";
+import { useModal } from "../context/modalContext";
 
 interface ImageData {
   id: string;
@@ -19,6 +20,9 @@ export default function NewFormPage() {
   const [project, setProject] = useState<ProjectData | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [saving, setSaving] = useState(false);
+  
+  const { loadSavedProjects } = useModal();
 
   useEffect(() => {
     const loadProject = async () => {
@@ -62,6 +66,35 @@ export default function NewFormPage() {
 
   const currentImage = project?.images?.[currentImageIndex];
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!project) return;
+    
+    setSaving(true);
+    
+    try {
+      // Here you would normally save the form configuration data
+      // For now, we'll just simulate a save and reload projects
+      
+      console.log('Saving project configuration...');
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      // Refresh the projects list in the context
+      await loadSavedProjects();
+      
+      alert('Project configuration saved successfully!');
+      
+    } catch (error) {
+      console.error('Error saving project configuration:', error);
+      alert('Failed to save project configuration. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <ProtectedRoute>
@@ -101,96 +134,116 @@ export default function NewFormPage() {
               </p>
             </div>
 
-            {/* Add Details button */}
+            {/* Project Info Banner */}
             <div className="mt-3">
-              <button className="w-full border-2 border-dotted font-semibold border-black-100 text-[#0C5965] py-2 rounded-lg hover:bg-[#EAEAEA] cursor-pointer transition">
-                + Add Details
-              </button>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-sm font-semibold text-blue-800">Project Information</span>
+                </div>
+                <p className="text-xs text-blue-700">
+                  {project.images && project.images.length > 0 
+                    ? `This project has ${project.images.length} image${project.images.length !== 1 ? 's' : ''} with labels. Configure parking details for each area below.`
+                    : 'No images uploaded for this project. You can still configure basic parking details.'}
+                </p>
+              </div>
             </div>
 
-            {/* Form Fields */}
-            <form className="flex flex-col gap-6">
-              <div>
-                <div className="flex flex-col gap-3 rounded-lg mt-3">
-                  <input 
-                    type="text" 
-                    placeholder="Label" 
-                    className="bg-[#EAEAEA] border-[#EAEAEA] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 text-black py-2.5 px-3 rounded-lg" 
-                  />
+            {/* Dynamic Form Fields based on Images */}
+            <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
+              {project.images && project.images.length > 0 ? (
+                project.images.map((image, index) => (
+                  <div key={image.id}>
+                    <div className="flex flex-col gap-3 rounded-lg mt-3">
+                      <input 
+                        type="text" 
+                        value={image.label || ''}
+                        placeholder="Label" 
+                        readOnly
+                        className="bg-gray-100 border-gray-200 text-black py-2.5 px-3 rounded-lg font-semibold cursor-not-allowed" 
+                      />
 
-                  {/* Mobil */}
-                  <div className="flex items-center gap-3 ml-1">
-                    <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
-                    <span className="w-14 text-[#6F6F6F]">Mobil</span>
-                    <input
-                      type="number"
-                      defaultValue={0}
-                      className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
-                    />
-                    <button type="button" className="ml-auto h-9 w-35 px-3 py-1 rounded-lg bg-[#EAEAEA] text-[#6F6F6F] text-sm hover:bg-gray-300 transition-colors">
-                      + Add Image
-                    </button>
+                      {/* Mobil */}
+                      <div className="flex items-center gap-3 ml-1">
+                        <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
+                        <span className="w-14 text-[#6F6F6F]">Mobil</span>
+                        <input
+                          type="number"
+                          defaultValue={0}
+                          className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
+                        />
+                        <button 
+                          type="button" 
+                          onClick={() => setCurrentImageIndex(index)}
+                          className="ml-auto h-9 w-35 px-3 py-1 rounded-lg bg-[#EAEAEA] text-[#6F6F6F] text-sm hover:bg-gray-300 transition-colors"
+                        >
+                          View Image
+                        </button>
+                      </div>
+
+                      {/* Motor */}
+                      <div className="flex items-center gap-3 ml-1">
+                        <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
+                        <span className="w-14 text-[#6F6F6F]">Motor</span>
+                        <input
+                          type="number"
+                          defaultValue={0}
+                          className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
+                        />
+                      </div>
+                    </div>
+                    
+                    {/* Add separator except for last item */}
+                    {index < project.images.length - 1 && (
+                      <hr className="border-gray-300 mt-6"/>
+                    )}
                   </div>
-
-                  {/* Motor */}
-                  <div className="flex items-center gap-3 ml-1">
-                    <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
-                    <span className="w-14 text-[#6F6F6F]">Motor</span>
-                    <input
-                      type="number"
-                      defaultValue={0}
-                      className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
+                ))
+              ) : (
+                /* Fallback form when no images */
+                <div>
+                  <div className="flex flex-col gap-3 rounded-lg mt-3">
+                    <input 
+                      type="text" 
+                      placeholder="Label" 
+                      className="bg-[#EAEAEA] border-[#EAEAEA] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 text-black py-2.5 px-3 rounded-lg" 
                     />
+
+                    {/* Mobil */}
+                    <div className="flex items-center gap-3 ml-1">
+                      <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
+                      <span className="w-14 text-[#6F6F6F]">Mobil</span>
+                      <input
+                        type="number"
+                        defaultValue={0}
+                        className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
+                      />
+                    </div>
+
+                    {/* Motor */}
+                    <div className="flex items-center gap-3 ml-1">
+                      <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
+                      <span className="w-14 text-[#6F6F6F]">Motor</span>
+                      <input
+                        type="number"
+                        defaultValue={0}
+                        className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
+                      />
+                    </div>
                   </div>
                 </div>
-              </div>
-
-              <hr className="border-gray-300"/>
-
-              <div>
-                <div className="flex flex-col gap-3 rounded-lg mt-3">
-                  <input 
-                    type="text" 
-                    placeholder="Label" 
-                    className="bg-[#EAEAEA] border-[#EAEAEA] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 text-black py-2.5 px-3 rounded-lg" 
-                  />
-
-                  {/* Mobil */}
-                  <div className="flex items-center gap-3 ml-1">
-                    <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
-                    <span className="w-14 text-[#6F6F6F]">Mobil</span>
-                    <input
-                      type="number"
-                      defaultValue={0}
-                      className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
-                    />
-                    <button type="button" className="ml-auto h-9 w-35 px-3 py-1 rounded-lg bg-[#EAEAEA] text-[#6F6F6F] text-sm hover:bg-gray-300 transition-colors">
-                      + Add Image
-                    </button>
-                  </div>
-
-                  {/* Motor */}
-                  <div className="flex items-center gap-3 ml-1">
-                    <input type="checkbox" className="size-[18px] bg-[#EAEAEA] text-[#6F6F6F]"/>
-                    <span className="w-14 text-[#6F6F6F]">Motor</span>
-                    <input
-                      type="number"
-                      defaultValue={0}
-                      className="w-12 bg-[#EAEAEA] text-[#6F6F6F] focus:outline-2 focus:outline-[#0C5965] focus:outline-offset-2 rounded px-2 py-1"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <hr className="border-gray-300"/>
+              )}
               
               {/* Submit Button */}
               <div className="mt-6">
                 <button
                   type="submit"
-                  className="w-full py-3 bg-[#2F6E77] text-white rounded-lg hover:bg-[#093E47] transition-colors font-semibold"
+                  disabled={saving}
+                  className="w-full py-3 bg-[#2F6E77] text-white rounded-lg hover:bg-[#093E47] transition-colors font-semibold disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Save Project Configuration
+                  {saving ? 'Saving Configuration...' : 'Save Project Configuration'}
                 </button>
               </div>
             </form>

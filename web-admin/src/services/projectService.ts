@@ -28,7 +28,9 @@ export const projectService = {
       updatedAt: new Date()
     };
     
+    console.log('💾 Saving project to service:', project.id, project.name);
     projects.push(project);
+    console.log('📊 Total projects in service:', projects.length);
     
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 500));
@@ -38,9 +40,12 @@ export const projectService = {
 
   // Get all projects
   async getProjects(): Promise<ProjectData[]> {
+    console.log('📥 Getting all projects from service, count:', projects.length);
     // Simulate API delay
     await new Promise(resolve => setTimeout(resolve, 300));
-    return [...projects];
+    const result = [...projects];
+    console.log('📤 Returning projects:', result.length);
+    return result;
   },
 
   // Get a project by ID
