@@ -1,25 +1,44 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, Image, ScrollView } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useRouter } from 'expo-router';
 import Header from '../components/layout/Header';
 import BottomNavigation from '../components/dashboard/BottomNavigation';
+import { useParking, Booking, BookingStatus } from '../contexts/ParkingContext';
 
-interface HistoryItem {
-  id: string;
-  date: string;
-  time: string;
-  location: string;
-  distance: string;
-  rating: number;
-  price: string;
-  image: any;
-}
+const formatPrice = (price: number): string =>
+  new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+  }).format(price);
+
+const formatDateTime = (iso: string): { date: string; time: string } => {
+  const d = new Date(iso);
+  const today = new Date();
+  const isToday = d.toDateString() === today.toDateString();
+  const date = isToday
+    ? 'Today'
+    : d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+  const time = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  return { date, time };
+};
+
+const STATUS_STYLES: Record<BookingStatus, { label: string; bg: string; text: string }> = {
+  active: { label: 'Active', bg: 'bg-green-100', text: 'text-green-700' },
+  completed: { label: 'Completed', bg: 'bg-gray-200', text: 'text-gray-700' },
+  cancelled: { label: 'Cancelled', bg: 'bg-red-100', text: 'text-red-600' },
+};
 
 const History: React.FC = () => {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('history');
+  const { bookings } = useParking();
 
-  // Handle tab press
+  const sortedBookings = useMemo(
+    () => [...bookings].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [bookings]
+  );
+
   const handleTabPress = useCallback(
     (tabId: string) => {
       setActiveTab(tabId);
@@ -33,7 +52,6 @@ const History: React.FC = () => {
           router.push('/favorite');
           break;
         case 'history':
-          // Already on history page
           break;
         case 'profile':
           router.push('/profile');
@@ -45,107 +63,78 @@ const History: React.FC = () => {
     [router]
   );
 
-  // Sample data based on the UI design
-  const historyData: HistoryItem[] = [
-    {
-      id: '1',
-      date: 'Today',
-      time: '14:28',
-      location: 'CCM Basement',
-      distance: '0.5 km',
-      rating: 4.7,
-      price: 'Rp9.000',
-      image: require('../assets/icons/car.png'), // Using car icon as placeholder
-    },
-    {
-      id: '2',
-      date: 'Today',
-      time: '14:28',
-      location: 'CCM Basement',
-      distance: '0.5 km',
-      rating: 4.7,
-      price: 'Rp9.000',
-      image: require('../assets/icons/car.png'),
-    },
-    {
-      id: '3',
-      date: 'Today',
-      time: '14:28',
-      location: 'CCM Basement',
-      distance: '0.5 km',
-      rating: 4.7,
-      price: 'Rp9.000',
-      image: require('../assets/icons/car.png'),
-    },
-    {
-      id: '4',
-      date: 'Today',
-      time: '14:28',
-      location: 'CCM Basement',
-      distance: '0.5 km',
-      rating: 4.7,
-      price: 'Rp9.000',
-      image: require('../assets/icons/car.png'),
-    },
-    {
-      id: '5',
-      date: 'Today',
-      time: '14:28',
-      location: 'CCM Basement',
-      distance: '0.5 km',
-      rating: 4.7,
-      price: 'Rp9.000',
-      image: require('../assets/icons/car.png'),
-    },
-  ];
+  const handleSelectBooking = (booking: Booking) => {
+    if (booking.status === 'active') {
+      router.push({ pathname: '/dashboard', params: { focusSpotId: String(booking.spotId) } });
+    }
+  };
 
-  const renderHistoryItem = (item: HistoryItem) => (
-    <View key={item.id} className="mx-6 mb-4 rounded-2xl bg-white p-4 shadow-sm">
-      <View className="flex-row items-center">
-        {/* Parking Image */}
-        <View className="mr-4 h-16 w-16 items-center justify-center rounded-lg bg-gray-200">
-          <Image
-            source={item.image}
-            className="h-8 w-8"
-            style={{ tintColor: '#666666' }}
-            resizeMode="contain"
-          />
-        </View>
+  const renderHistoryItem = (item: Booking) => {
+    const { date, time } = formatDateTime(item.createdAt);
+    const statusStyle = STATUS_STYLES[item.status];
 
-        {/* Parking Info */}
-        <View className="flex-1">
-          <View className="mb-1 flex-row items-center justify-between">
-            <Text className="text-xs text-gray-500">
-              {item.date}, {item.time}
-            </Text>
-            <Text className="text-sm font-semibold text-gray-900">{item.price}</Text>
+    return (
+      <TouchableOpacity
+        key={item.id}
+        onPress={() => handleSelectBooking(item)}
+        activeOpacity={0.8}
+        className="mx-6 mb-4 rounded-2xl bg-white p-4 shadow-sm">
+        <View className="flex-row items-center">
+          {/* Parking Image */}
+          <View className="mr-4 h-16 w-16 items-center justify-center rounded-lg bg-gray-200">
+            <Image
+              source={require('../assets/icons/car.png')}
+              className="h-8 w-8"
+              style={{ tintColor: '#666666' }}
+              resizeMode="contain"
+            />
           </View>
 
-          <Text className="mb-1 text-lg font-semibold text-gray-900">{item.location}</Text>
+          {/* Parking Info */}
+          <View className="flex-1">
+            <View className="mb-1 flex-row items-center justify-between">
+              <Text className="text-xs text-gray-500">
+                {date}, {time}
+              </Text>
+              <Text className="text-sm font-semibold text-gray-900">
+                {formatPrice(item.totalPrice)}
+              </Text>
+            </View>
 
-          <View className="flex-row items-center">
-            <Text className="mr-3 text-sm text-gray-600">{item.distance}</Text>
-            <View className="flex-row items-center">
-              <Image
-                source={require('../assets/icons/Vector.png')}
-                className="mr-1 h-3 w-3"
-                style={{ tintColor: '#FFC107' }}
-                resizeMode="contain"
-              />
-              <Text className="text-sm text-gray-600">{item.rating}</Text>
+            <Text className="mb-1 text-lg font-semibold text-gray-900">{item.spotName}</Text>
+
+            <View className="flex-row items-center justify-between">
+              <Text className="text-sm text-gray-600">
+                {item.durationHours}h · {item.paymentMethod}
+              </Text>
+              <View className={`rounded-full px-2 py-1 ${statusStyle.bg}`}>
+                <Text className={`text-xs font-medium ${statusStyle.text}`}>
+                  {statusStyle.label}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
-      </View>
-    </View>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View className="flex-1 bg-gray-100">
       <Header title="History" showBackButton={true} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {historyData.map(renderHistoryItem)}
+        {sortedBookings.length === 0 ? (
+          <View className="items-center px-8 py-16">
+            <Text className="mb-2 text-5xl">🅿️</Text>
+            <Text className="text-base font-medium text-gray-700">No bookings yet</Text>
+            <Text className="mt-1 text-center text-sm text-gray-500">
+              Book a parking spot from the dashboard to see it here.
+            </Text>
+          </View>
+        ) : (
+          sortedBookings.map(renderHistoryItem)
+        )}
 
         {/* Bottom padding for navigation */}
         <View className="h-32" />

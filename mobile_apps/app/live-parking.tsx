@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { View, Text, ScrollView, Image } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import Header from '../components/layout/Header';
@@ -6,59 +6,20 @@ import BottomNavigation from '../components/dashboard/BottomNavigation';
 import LiveFootage from '../components/live-parking/LiveFootage';
 import ParkingLevelSelector from '../components/live-parking/ParkingLevelSelector';
 import LevelInfoDisplay from '../components/live-parking/LevelInfoDisplay';
+import { getParkingLocationById, isParkingOpen, ParkingLevel } from '../data/liveParkingData';
 
-interface ParkingLevel {
-  id: string;
-  name: string;
-  available: boolean;
-  spots?: {
-    total: number;
-    occupied: number;
-    available: number;
-  };
-}
+const PARKING_LOCATION_ID = 'pakuwon-basement';
 
 export default function LiveParkingPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('parking');
-  const [selectedLevel, setSelectedLevel] = useState('upper-basement');
 
-  // Mock data for parking levels
-  const parkingLevels: ParkingLevel[] = [
-    {
-      id: 'upper-basement',
-      name: 'Upper Basement',
-      available: true,
-      spots: { total: 150, occupied: 45, available: 105 },
-    },
-    {
-      id: 'lower-basement',
-      name: 'Lower Basement',
-      available: true,
-      spots: { total: 200, occupied: 180, available: 20 },
-    },
-    {
-      id: 'basement-1',
-      name: 'Basement',
-      available: true,
-      spots: { total: 100, occupied: 60, available: 40 },
-    },
-    {
-      id: 'basement-2',
-      name: 'Basement',
-      available: true,
-      spots: { total: 120, occupied: 60, available: 60 },
-    },
-    {
-      id: 'basement-3',
-      name: 'Basement',
-      available: true,
-      spots: { total: 80, occupied: 50, available: 30 },
-    },
-  ];
+  const parkingLocation = useMemo(() => getParkingLocationById(PARKING_LOCATION_ID)!, []);
+  const parkingLevels = parkingLocation.levels;
+  const [selectedLevel, setSelectedLevel] = useState(parkingLevels[0].id);
 
   // Current time for closing information
-  const [, setCurrentTime] = useState(new Date());
+  const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -67,6 +28,8 @@ export default function LiveParkingPage() {
 
     return () => clearInterval(timer);
   }, []);
+
+  const isOpen = isParkingOpen(parkingLocation);
 
   // Handle tab press
   const handleTabPress = (tabId: string) => {
@@ -91,14 +54,6 @@ export default function LiveParkingPage() {
       default:
         break;
     }
-  };
-
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString('id-ID', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: false,
-    });
   };
 
   return (
@@ -225,7 +180,7 @@ export default function LiveParkingPage() {
             {/* Selected Level Info */}
             {selectedLevel &&
               (() => {
-                const level = parkingLevels.find((l) => l.id === selectedLevel);
+                const level = parkingLevels.find((l: ParkingLevel) => l.id === selectedLevel);
                 if (!level || !level.spots) return null;
 
                 return (
@@ -239,13 +194,14 @@ export default function LiveParkingPage() {
           </View>
         </View>
 
-        {/* Closing Time Information */}
+        {/* Operating Hours Information */}
         <View
           style={{
             margin: 16,
             marginTop: 0,
             flexDirection: 'row',
             alignItems: 'center',
+            justifyContent: 'space-between',
             backgroundColor: 'white',
             padding: 16,
             borderRadius: 12,
@@ -255,25 +211,65 @@ export default function LiveParkingPage() {
             shadowRadius: 4,
             elevation: 2,
           }}>
-          <Image
-            source={require('../assets/icons/clock.png')}
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Image
+              source={require('../assets/icons/clock.png')}
+              style={{
+                width: 20,
+                height: 20,
+                tintColor: '#6b7280',
+                marginRight: 12,
+              }}
+              resizeMode="contain"
+            />
+            <Text
+              style={{
+                color: '#374151',
+                fontSize: 14,
+                fontWeight: '500',
+              }}>
+              Open {parkingLocation.operatingHours.open} - {parkingLocation.operatingHours.close}
+            </Text>
+          </View>
+          <View
             style={{
-              width: 20,
-              height: 20,
-              tintColor: '#6b7280',
-              marginRight: 12,
-            }}
-            resizeMode="contain"
-          />
-          <Text
-            style={{
-              color: '#374151',
-              fontSize: 14,
-              fontWeight: '500',
+              flexDirection: 'row',
+              alignItems: 'center',
+              backgroundColor: isOpen ? '#dcfce7' : '#fee2e2',
+              paddingHorizontal: 10,
+              paddingVertical: 4,
+              borderRadius: 999,
             }}>
-            Jam Tutup : {formatTime(new Date(2024, 11, 12, 21, 30))}
-          </Text>
+            <View
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: isOpen ? '#16a34a' : '#dc2626',
+                marginRight: 6,
+              }}
+            />
+            <Text
+              style={{
+                fontSize: 12,
+                fontWeight: '600',
+                color: isOpen ? '#16a34a' : '#dc2626',
+              }}>
+              {isOpen ? 'Open Now' : 'Closed'}
+            </Text>
+          </View>
         </View>
+
+        <Text
+          style={{
+            marginHorizontal: 16,
+            marginBottom: 8,
+            fontSize: 11,
+            color: '#9ca3af',
+            textAlign: 'right',
+          }}>
+          Last updated {currentTime.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
+        </Text>
       </ScrollView>
 
       {/* Bottom Navigation */}

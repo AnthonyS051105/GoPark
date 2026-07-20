@@ -6,9 +6,10 @@ import Mapbox, {
   ShapeSource,
   SymbolLayer,
   CircleLayer,
+  LineLayer,
 } from '@rnmapbox/maps';
 import * as Location from 'expo-location';
-import { parkingSpots } from '../../data/parkingData';
+import { parkingSpots, ParkingSpot } from '../../data/parkingData';
 import '../../utils/mapboxErrorHandler'; // Import to initialize error suppression
 
 const accessToken =
@@ -29,12 +30,24 @@ if (accessToken) {
 const YOGYAKARTA_COORDS: [number, number] = [110.374, -7.754];
 
 interface MapProps {
+  spots?: ParkingSpot[];
   selectedSpotIndex?: number;
   onSpotPress?: (index: number) => void;
+  onLocationChange?: (coords: [number, number]) => void;
+  recenterTrigger?: number;
+  routeCoordinates?: [number, number][] | null;
 }
 
-export default function Map({ selectedSpotIndex = 0, onSpotPress }: MapProps = {}) {
+export default function Map({
+  spots = parkingSpots,
+  selectedSpotIndex = 0,
+  onSpotPress,
+  onLocationChange,
+  recenterTrigger = 0,
+  routeCoordinates = null,
+}: MapProps = {}) {
   const [location, setLocation] = useState<[number, number]>(YOGYAKARTA_COORDS);
+  const [cameraCenter, setCameraCenter] = useState<[number, number]>(YOGYAKARTA_COORDS);
   const [hasLocationPermission, setHasLocationPermission] = useState(false);
   const [isMapReady, setIsMapReady] = useState(false);
 
@@ -46,6 +59,7 @@ export default function Map({ selectedSpotIndex = 0, onSpotPress }: MapProps = {
           console.log('Permission to access location was denied');
           // Use default Yogyakarta coordinates if permission denied
           setLocation(YOGYAKARTA_COORDS);
+          onLocationChange?.(YOGYAKARTA_COORDS);
           return;
         }
 
@@ -54,14 +68,41 @@ export default function Map({ selectedSpotIndex = 0, onSpotPress }: MapProps = {
         let currentLocation = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.High,
         });
-        setLocation([currentLocation.coords.longitude, currentLocation.coords.latitude]);
+        const coords: [number, number] = [
+          currentLocation.coords.longitude,
+          currentLocation.coords.latitude,
+        ];
+        setLocation(coords);
+        onLocationChange?.(coords);
       } catch (error) {
         console.log('Error getting location:', error);
         // Fallback to Yogyakarta coordinates
         setLocation(YOGYAKARTA_COORDS);
+        onLocationChange?.(YOGYAKARTA_COORDS);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Re-center camera on user location when recenterTrigger changes
+  useEffect(() => {
+    if (recenterTrigger > 0) {
+      setCameraCenter(location);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recenterTrigger]);
+
+  const routeGeoJSON = React.useMemo(() => {
+    if (!routeCoordinates || routeCoordinates.length < 2) return null;
+    return {
+      type: 'Feature' as const,
+      properties: {},
+      geometry: {
+        type: 'LineString' as const,
+        coordinates: routeCoordinates,
+      },
+    };
+  }, [routeCoordinates]);
 
   // Handle map ready
   const handleMapReady = useCallback(() => {
@@ -98,7 +139,7 @@ export default function Map({ selectedSpotIndex = 0, onSpotPress }: MapProps = {
     try {
       return {
         type: 'FeatureCollection' as const,
-        features: parkingSpots.map((spot, index) => ({
+        features: spots.map((spot, index) => ({
           type: 'Feature' as const,
           id: spot.id.toString(), // Ensure ID is string for Mapbox
           properties: {
@@ -120,7 +161,7 @@ export default function Map({ selectedSpotIndex = 0, onSpotPress }: MapProps = {
         features: [],
       };
     }
-  }, [selectedSpotIndex]);
+  }, [spots, selectedSpotIndex]);
 
   if (!accessToken) {
     return null; // Don't render if no access token
@@ -136,10 +177,26 @@ export default function Map({ selectedSpotIndex = 0, onSpotPress }: MapProps = {
       attributionEnabled={false}
       compassEnabled={false}
       scaleBarEnabled={false}>
-      <Camera zoomLevel={14} centerCoordinate={location} animationDuration={1000} />
+      <Camera zoomLevel={14} centerCoordinate={cameraCenter} animationDuration={1000} />
 
       {hasLocationPermission && isMapReady && (
         <UserLocation visible={true} showsUserHeadingIndicator={true} minDisplacement={10} />
+      )}
+
+      {/* Route line - only render when navigating */}
+      {isMapReady && routeGeoJSON && (
+        <ShapeSource id="routeSource" shape={routeGeoJSON}>
+          <LineLayer
+            id="routeLine"
+            style={{
+              lineColor: '#2F6E77',
+              lineWidth: 5,
+              lineOpacity: 0.85,
+              lineCap: 'round',
+              lineJoin: 'round',
+            }}
+          />
+        </ShapeSource>
       )}
 
       {/* Parking Spots Markers - Only render when map is ready */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { View, Text, ScrollView, Alert, Image } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -10,7 +10,6 @@ import {
   HeaderNavigation,
   Button,
   Input,
-  Divider,
 } from "../../components";
 import { useForm } from "../../hooks/useForm";
 import {
@@ -34,7 +33,7 @@ export default function SignUp() {
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
-  const { signup, loginWithGoogle } = useAuth();
+  const { signup } = useAuth();
   const padding = getResponsivePadding(22);
   const desktop = isDesktop();
 
@@ -107,30 +106,6 @@ export default function SignUp() {
     }
   };
 
-  const handleGoogleSignUp = async () => {
-    setIsLoading(true);
-    try {
-      console.log("🔐 Starting Google signup...");
-      const result = await loginWithGoogle();
-
-      if (result.success) {
-        Alert.alert("Success", "Account created with Google successfully!", [
-          { text: "OK", onPress: () => router.replace("/") },
-        ]);
-      } else {
-        Alert.alert(
-          "Error",
-          result.error || "Google signup failed. Please try again."
-        );
-      }
-    } catch (error) {
-      console.error("Google signup error:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <GradientBackground>
       {/* Decorative Circles */}
@@ -158,32 +133,6 @@ export default function SignUp() {
           </Text>
         </View>
 
-        <View style={{ marginHorizontal: padding }}>
-          {/* Google Sign Up Button */}
-          <Button
-            title="Sign up with Google"
-            onPress={handleGoogleSignUp}
-            variant="secondary"
-            size="sm"
-            disabled={isLoading}
-            borderRadius={23}
-            icon={
-              <Image
-                source={require("../../assets/icons/Vector.png")}
-                style={{
-                  width: 18,
-                  height: 18,
-                  marginRight: 10,
-                }}
-                resizeMode="contain"
-              />
-            }
-          />
-
-          {/* Divider */}
-          <Divider lineMargin={13} />
-        </View>
-
         {/* Form Card - Menggunakan styling manual untuk mempertahankan tampilan yang sama */}
         <View
           style={{
@@ -191,7 +140,9 @@ export default function SignUp() {
             borderRadius: 24,
             padding: desktop ? padding * 1.5 : padding,
             paddingHorizontal: desktop ? padding * 1.8 : padding * 1,
+            paddingTop: desktop ? padding * 2 : padding * 1.5,
             marginHorizontal: padding,
+            marginTop: desktop ? 20 : 28,
             marginBottom: padding,
             ...SHADOWS.card,
           }}

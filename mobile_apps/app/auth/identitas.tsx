@@ -1,6 +1,6 @@
 "use client";
 
-import { View, Text, Dimensions } from "react-native";
+import { View, Text, Dimensions, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import {
   GradientBackground,
@@ -19,7 +19,10 @@ export default function Identitas() {
   };
 
   const handleAdminLogin = () => {
-    console.log("Admin login clicked");
+    Alert.alert(
+      "Administrator",
+      "Admin access is managed through the GoPark web dashboard, not this mobile app."
+    );
   };
 
   return (

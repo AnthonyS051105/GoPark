@@ -1,28 +1,15 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-
-interface ParkingSpot {
-  id: number;
-  name: string;
-  address?: string;
-  description?: string;
-  available: number;
-  total?: number;
-  distance?: number;
-  hourlyRate?: number;
-  rating?: string | number;
-  features?: string[];
-  hours?: string;
-  paymentMethods?: string[];
-  latitude: number;
-  longitude: number;
-}
+import { useRouter } from 'expo-router';
+import { useParking } from '../../contexts/ParkingContext';
+import { ParkingSpot } from '../../data/parkingData';
 
 interface ParkingSpotCardProps {
   spot: ParkingSpot;
   isSelected?: boolean;
   onPress?: () => void;
   onStartNavigation?: () => void;
+  onBookSpot?: () => void;
   isNavigating?: boolean;
   navigationState?: string;
   showNavigationButton?: boolean;
@@ -33,10 +20,14 @@ const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
   isSelected = false,
   onPress,
   onStartNavigation,
+  onBookSpot,
   isNavigating = false,
   navigationState = 'idle',
   showNavigationButton = false,
 }) => {
+  const router = useRouter();
+  const { isFavorite, toggleFavorite } = useParking();
+  const favorited = isFavorite(spot.id);
   const getAvailabilityColor = () => {
     if (spot.available === 0) return 'text-red-500';
     if (spot.available <= 2) return 'text-yellow-500';
@@ -158,15 +149,22 @@ const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
 
               {/* Quick Actions */}
               <View className="flex-row space-x-2">
-                <TouchableOpacity className="rounded-lg bg-gray-100 p-2">
+                <TouchableOpacity
+                  className="rounded-lg bg-gray-100 p-2"
+                  onPress={() => toggleFavorite(spot.id)}
+                  activeOpacity={0.7}>
                   <Image
                     source={require('../../assets/icons/love.png')}
-                    className="h-4 w-4 opacity-60"
+                    className="h-4 w-4"
+                    style={{ opacity: favorited ? 1 : 0.6, tintColor: favorited ? '#EF4444' : undefined }}
                     resizeMode="contain"
                   />
                 </TouchableOpacity>
 
-                <TouchableOpacity className="rounded-lg bg-gray-100 p-2">
+                <TouchableOpacity
+                  className="rounded-lg bg-gray-100 p-2"
+                  onPress={() => router.push('/history')}
+                  activeOpacity={0.7}>
                   <Image
                     source={require('../../assets/icons/history.png')}
                     className="h-4 w-4 opacity-60"
@@ -199,9 +197,15 @@ const ParkingSpotCard: React.FC<ParkingSpotCardProps> = ({
               </View>
             </View>
 
-            {/* More Info Button */}
-            <TouchableOpacity className="rounded-lg bg-gray-100 px-3 py-2">
-              <Text className="text-sm text-gray-600">More Info</Text>
+            {/* Book Button */}
+            <TouchableOpacity
+              className={`rounded-lg px-3 py-2 ${spot.available > 0 ? 'bg-[#2F6E77]' : 'bg-gray-300'}`}
+              onPress={onBookSpot}
+              disabled={spot.available === 0}
+              activeOpacity={0.8}>
+              <Text className={`text-sm font-medium ${spot.available > 0 ? 'text-white' : 'text-gray-500'}`}>
+                Book This Spot
+              </Text>
             </TouchableOpacity>
           </View>
 

@@ -8,23 +8,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import ParkingSpotCard from './ParkingSpotCard';
-
-interface ParkingSpot {
-  id: number;
-  name: string;
-  address?: string;
-  description?: string;
-  available: number;
-  total?: number;
-  distance?: number;
-  hourlyRate?: number;
-  rating?: string | number;
-  features?: string[];
-  hours?: string;
-  paymentMethods?: string[];
-  latitude: number;
-  longitude: number;
-}
+import { ParkingSpot } from '../../data/parkingData';
 
 interface DraggablePullUpPanelProps {
   spots?: ParkingSpot[];
@@ -32,6 +16,7 @@ interface DraggablePullUpPanelProps {
   onSpotSelect?: (index: number) => void;
   onScroll?: (index: number) => void;
   onStartNavigation?: (index: number, spot: ParkingSpot) => void;
+  onBookSpot?: (spot: ParkingSpot) => void;
   isNavigating?: boolean;
   navigationState?: string;
   onPanelHeightChange?: (height: number) => void;
@@ -79,6 +64,7 @@ export default function DraggablePullUpPanel({
   onSpotSelect,
   onScroll,
   onStartNavigation,
+  onBookSpot,
   isNavigating = false,
   navigationState = 'idle',
   onPanelHeightChange,
@@ -451,6 +437,7 @@ export default function DraggablePullUpPanel({
                         isSelected={isSelected}
                         onPress={() => handleSpotPress(sortedIndex, spot)}
                         onStartNavigation={() => onStartNavigation?.(originalIndex, spot)}
+                        onBookSpot={() => onBookSpot?.(spot)}
                         isNavigating={isNavigating}
                         navigationState={navigationState}
                         showNavigationButton={isSelected}

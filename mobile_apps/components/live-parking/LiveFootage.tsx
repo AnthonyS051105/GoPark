@@ -182,6 +182,20 @@ const LiveFootage: React.FC<LiveFootageProps> = ({
       }}>
       {renderContent()}
 
+      {/* Simulation Notice */}
+      <View
+        style={{
+          position: 'absolute',
+          top: 12,
+          left: 12,
+          backgroundColor: 'rgba(0, 0, 0, 0.7)',
+          paddingHorizontal: 8,
+          paddingVertical: 4,
+          borderRadius: 12,
+        }}>
+        <Text style={{ color: '#d1d5db', fontSize: 9, fontWeight: '500' }}>SIMULATED</Text>
+      </View>
+
       {/* Status Indicator */}
       <View
         style={{

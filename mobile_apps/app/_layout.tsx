@@ -4,6 +4,7 @@ import '../global.css';
 import { Stack } from 'expo-router';
 import { usePoppins } from '../hooks/usePoppins';
 import { AuthProvider } from '../contexts/AuthContext';
+import { ParkingProvider } from '../contexts/ParkingContext';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -22,16 +23,19 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="auth" />
-          <Stack.Screen name="dashboard" />
-          <Stack.Screen name="live-parking" />
-          <Stack.Screen name="profile" />
-          <Stack.Screen name="history" />
-          <Stack.Screen name="favorite" />
-        </Stack>
+        <ParkingProvider>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="index" />
+            <Stack.Screen name="auth" />
+            <Stack.Screen name="dashboard" />
+            <Stack.Screen name="live-parking" />
+            <Stack.Screen name="profile" />
+            <Stack.Screen name="history" />
+            <Stack.Screen name="favorite" />
+            <Stack.Screen name="search" />
+          </Stack>
+        </ParkingProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );

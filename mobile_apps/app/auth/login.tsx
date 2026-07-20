@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { View, Text, ScrollView, Alert, Image } from "react-native";
+import { View, Text, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "../../contexts/AuthContext";
 import {
@@ -10,8 +10,6 @@ import {
   HeaderNavigation,
   Button,
   Input,
-  Divider,
-  Card,
 } from "../../components";
 import { useForm } from "../../hooks/useForm";
 import { validateEmail, validateRequired } from "../../utils/validation";
@@ -27,7 +25,7 @@ export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const router = useRouter();
-  const { login, loginWithGoogle } = useAuth();
+  const { login } = useAuth();
   const padding = getResponsivePadding(20);
   const desktop = isDesktop();
 
@@ -73,34 +71,10 @@ export default function LoginScreen() {
     }
   };
 
-  const handleGoogleLogin = async () => {
-    setIsLoading(true);
-    try {
-      console.log("🔐 Starting Google login...");
-      const result = await loginWithGoogle();
-
-      if (result.success) {
-        Alert.alert("Success", "Logged in with Google successfully!", [
-          { text: "OK", onPress: () => router.replace("/") },
-        ]);
-      } else {
-        Alert.alert(
-          "Error",
-          result.error || "Google login failed. Please try again."
-        );
-      }
-    } catch (error) {
-      console.error("Google login error:", error);
-      Alert.alert("Error", "An unexpected error occurred. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handleForgotPassword = () => {
     Alert.alert(
       "Forgot Password",
-      "Password reset functionality will be implemented soon."
+      "Password reset isn't available in this beta version yet. If you forgot your password, please create a new account for now."
     );
   };
 
@@ -141,32 +115,6 @@ export default function LoginScreen() {
           </Text>
         </View>
 
-        <View style={{ marginHorizontal: padding }}>
-          {/* Google Log In Button */}
-          <Button
-            title="Log in with Google"
-            onPress={handleGoogleLogin}
-            variant="secondary"
-            size="sm"
-            disabled={isLoading}
-            borderRadius={23}
-            icon={
-              <Image
-                source={require("../../assets/icons/Vector.png")}
-                style={{
-                  width: 18,
-                  height: 18,
-                  marginRight: 10,
-                }}
-                resizeMode="contain"
-              />
-            }
-          />
-
-          {/* Divider */}
-          <Divider lineMargin={13} />
-        </View>
-
         {/* Form Card - Menggunakan styling manual untuk mempertahankan tampilan yang sama */}
         <View
           style={{
@@ -174,8 +122,9 @@ export default function LoginScreen() {
             borderRadius: 24,
             padding: desktop ? padding * 1.5 : padding,
             paddingHorizontal: desktop ? padding * 1.8 : padding * 1,
-            paddingTop: desktop ? padding * 2 : padding * 1.5,
+            paddingTop: desktop ? padding * 2.5 : padding * 2,
             marginHorizontal: padding,
+            marginTop: desktop ? 20 : 28,
             marginBottom: padding,
             ...SHADOWS.card,
           }}
@@ -242,7 +191,7 @@ export default function LoginScreen() {
                 color: COLORS.text.secondary,
               }}
             >
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Text
                 onPress={handleCreateAccount}
                 style={{

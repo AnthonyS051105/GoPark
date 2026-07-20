@@ -1,5 +1,21 @@
 // Yogyakarta parking spots data
-export const parkingSpots = [
+export interface ParkingSpot {
+  id: number;
+  name: string;
+  address: string;
+  rating: number;
+  hourlyRate: number;
+  available: number;
+  total: number;
+  latitude: number;
+  longitude: number;
+  features: string[];
+  distance: number;
+  hours: string;
+  paymentMethods: string[];
+}
+
+export const parkingSpots: ParkingSpot[] = [
   {
     id: 1,
     name: 'CCM Basement',
